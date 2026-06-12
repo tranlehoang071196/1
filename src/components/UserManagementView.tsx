@@ -304,8 +304,8 @@ export function UserManagementView() {
                              onChange={(e) => setSelectedRoleForApproval({...selectedRoleForApproval, [pu.email]: e.target.value as any})}
                              className="text-xs px-2.5 h-9 border border-slate-200 rounded-lg outline-none cursor-pointer focus:border-slate-300 bg-white font-medium"
                           >
-                             <option value="viewer">Viewer</option>
-                             <option value="admin">Admin</option>
+                             <option value="viewer">Người xem</option>
+                             <option value="admin">Quản trị viên</option>
                           </select>
                           <button
                             onClick={() => handleApprovePending(pu.email)}
@@ -351,9 +351,9 @@ export function UserManagementView() {
                     onChange={(e) => setNewRole(e.target.value as any)}
                     className="h-9 px-3 bg-white border border-slate-200 rounded-lg text-xs font-medium outline-none focus:border-slate-350 transition-all font-sans cursor-pointer"
                   >
-                    <option value="viewer">Viewer</option>
-                    <option value="editor">Editor</option>
-                    <option value="admin">Admin</option>
+                    <option value="viewer">Người xem</option>
+                    <option value="editor">Cán bộ chuyên môn</option>
+                    <option value="admin">Quản trị viên</option>
                   </select>
                   <button
                     type="submit"
@@ -385,8 +385,8 @@ export function UserManagementView() {
                   >
                     <option value="all">Tất cả vai trò</option>
                     <option value="admin">Quản trị viên</option>
-                    <option value="editor">Chuyên môn (Editor)</option>
-                    <option value="viewer">Người xem (Viewer)</option>
+                    <option value="editor">Cán bộ chuyên môn</option>
+                    <option value="viewer">Người xem</option>
                   </select>
                 </div>
               </div>
@@ -441,8 +441,8 @@ export function UserManagementView() {
                                   className="bg-transparent border-none outline-none p-0 text-[10px] font-extrabold uppercase focus:ring-0 leading-none cursor-pointer disabled:cursor-not-allowed text-inherit pr-6"
                                 >
                                   <option value="admin" className="text-slate-800">Quản trị viên</option>
-                                  <option value="editor" className="text-slate-800">Cán bộ chuyên môn (Editor)</option>
-                                  <option value="viewer" className="text-slate-800">Người xem (Viewer)</option>
+                                  <option value="editor" className="text-slate-800">Cán bộ chuyên môn</option>
+                                  <option value="viewer" className="text-slate-800">Người xem</option>
                                 </select>
                               </div>
                             </div>

@@ -211,26 +211,6 @@ export default function App() {
           }
           setUserRole('admin');
           setUserStatus('approved');
-        } else if (IS_DEV) {
-          try {
-            const { setDoc } = await import('firebase/firestore');
-            const userDocRef = doc(db, 'authorized_emails', email || '');
-            const userDoc = await getDoc(userDocRef);
-            if (!userDoc.exists()) {
-              // DEV ONLY — remove before production deploy
-              await setDoc(userDocRef, { email, role: 'editor', status: 'approved' });
-              setUserRole('editor');
-              setUserStatus('approved');
-            } else {
-              const data = userDoc.data();
-              setUserRole(data?.role || 'viewer');
-              setUserStatus(data?.status || 'approved');
-            }
-          } catch (err) {
-            console.error('DEV auth bootstrap error:', err);
-            setUserRole('viewer');
-            setUserStatus('pending');
-          }
         } else {
           try {
             const { setDoc } = await import('firebase/firestore');
@@ -692,7 +672,7 @@ export default function App() {
                 userRole === 'editor' ? "bg-blue-50 text-blue-700 border border-blue-250/20" :
                 "bg-slate-100 text-slate-500 border border-slate-200"
               )}>
-                {userRole === 'admin' ? 'Quản trị viên' : userRole === 'editor' ? 'Chuyên môn' : 'Xem (Sở ngành)'}
+                {userRole === 'admin' ? 'Quản trị viên' : userRole === 'editor' ? 'Cán bộ chuyên môn' : 'Người xem'}
               </span>
             </div>
             <div className="group relative">

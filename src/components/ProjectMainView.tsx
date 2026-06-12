@@ -886,7 +886,7 @@ export const ProjectMainView = ({
                                      userRolesMap[email.toLowerCase()] === 'editor' ? "bg-blue-50 text-blue-700 border border-blue-250/20" :
                                      "bg-slate-100 text-slate-500 border border-slate-200"
                                    )}>
-                                     {userRolesMap[email.toLowerCase()] === 'admin' ? 'Quản trị viên' : userRolesMap[email.toLowerCase()] === 'editor' ? 'Chuyên môn' : 'Xem (Sở ngành)'}
+                                     {userRolesMap[email.toLowerCase()] === 'admin' ? 'Quản trị viên' : userRolesMap[email.toLowerCase()] === 'editor' ? 'Cán bộ chuyên môn' : 'Người xem'}
                                    </span>
                                  )}
                                </div>

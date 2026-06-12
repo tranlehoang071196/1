@@ -78,8 +78,19 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
   let friendlyMessage = 'Có lỗi xảy ra khi truy xuất dữ liệu từ hệ thống. Vui lòng thử lại sau.';
   const lowerError = errorMessage.toLowerCase();
 
-  if (lowerError.includes('permission-denied') || lowerError.includes('insufficient permissions')) {
+  const isWriteOp = [OperationType.WRITE, OperationType.CREATE, OperationType.UPDATE, OperationType.DELETE].includes(operationType);
+  const isPermissionDenied = lowerError.includes('permission-denied') || lowerError.includes('insufficient permissions');
+
+  if (isPermissionDenied) {
     friendlyMessage = '🔒 Quyền hạn không hợp lệ: Bạn không có đầy đủ thẩm quyền biên tập hoặc xóa thông tin tại mục này. Vui lòng liên hệ Quản trị viên hệ thống để kiểm tra và nâng quyền (Cán bộ Chuyên môn hoặc Người biên tập).';
+    
+    // For read operations (list, get), do not show toast alerts as it's an expected restriction for viewers
+    if (!isWriteOp) {
+      if (import.meta.env.DEV) {
+        console.warn('Read/List permission denied (suppressed toast for viewer/read operation):', path);
+      }
+      throw new Error(friendlyMessage);
+    }
   } else if (lowerError.includes('not-found')) {
     friendlyMessage = 'Dữ liệu yêu cầu không tìm thấy hoặc đã bị xóa bởi cán bộ khác.';
   } else if (lowerError.includes('unauthenticated') || lowerError.includes('auth')) {
