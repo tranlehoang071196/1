@@ -964,11 +964,6 @@ export default function App() {
                                   )}>
                                     {label}
                                   </span>
-                                  {!isCompleted && getOverdueText(deadline) && (
-                                    <span className="shrink-0 bg-red-50 text-red-600 border border-red-200 text-[8.5px] font-bold px-1.5 py-0.5 rounded select-none leading-none scale-90 origin-right">
-                                      {getOverdueText(deadline)}
-                                    </span>
-                                  )}
                                 </div>
                               )}
                             </button>
@@ -1040,11 +1035,6 @@ export default function App() {
                                   )}>
                                     {label}
                                   </span>
-                                  {!isCompleted && getOverdueText(deadline) && (
-                                    <span className="shrink-0 bg-red-50 text-red-600 border border-red-200 text-[8.5px] font-bold px-1.5 py-0.5 rounded select-none leading-none scale-90 origin-right">
-                                      {getOverdueText(deadline)}
-                                    </span>
-                                  )}
                                 </div>
                               )}
                             </button>

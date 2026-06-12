@@ -626,124 +626,305 @@ export const ProjectMainView = ({
                 {/* 1.1. Theo dõi hạn thực hiện công việc */}
                 {(() => {
                   const { overdueList, upcomingList } = getDueTasks();
+                  
+                  // Compute dynamic statistics
+                  let totalSteps = 0;
+                  let completedSteps = 0;
+                  
+                  STEP_CATEGORIES.forEach(cat => {
+                    if (!project.disabledCategories?.includes(cat.id)) {
+                      const activeSteps = getCategoryStepsOrdered(project, cat.id);
+                      activeSteps.forEach(stepKey => {
+                        if (!stepKey.startsWith('custom_') && project.disabledSteps?.includes(stepKey)) {
+                          return;
+                        }
+                        totalSteps++;
+                        
+                        let statusValue: any = 'pending';
+                        if (stepKey.startsWith('custom_')) {
+                          const customId = stepKey.replace('custom_', '');
+                          const cs = project.customSteps?.find(x => x.id === customId);
+                          if (cs) {
+                            statusValue = cs.status || 'pending';
+                          }
+                        } else {
+                          const s = project.steps[stepKey as keyof typeof project.steps];
+                          if (s) {
+                            statusValue = (typeof s === 'object' && s !== null ? s.status : s) || 'pending';
+                          }
+                        }
+                        
+                        if (statusValue === 'completed') {
+                          completedSteps++;
+                        }
+                      });
+                    }
+                  });
+                  
+                  const completionPercent = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
+
                   return (
-                    <div className="bg-white rounded-lg p-5 border border-slate-200 shadow-sm relative overflow-hidden">
-                      <div className="absolute top-0 left-0 w-full h-1 bg-[#0056b3]"></div>
+                    <div className="bg-white rounded-xl border border-slate-200 shadow-sm relative overflow-hidden transition-all duration-200">
+                      {/* Left accent accentuating executive authority */}
+                      <div className="absolute top-0 left-0 w-1.5 h-full bg-[#0056b3]"></div>
                       
-                      <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-100">
-                        <div className="flex items-center gap-2">
-                          <CalendarDays className="w-4 h-4 text-slate-500" />
-                          <h3 className="text-sm font-bold text-slate-800 tracking-tight">Theo dõi hạn công việc</h3>
+                      {/* Header with Title & Subtitles */}
+                      <div className="p-5 pb-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-slate-50/40 animate-none">
+                        <div className="pl-2">
+                          <div className="flex items-center gap-2 mb-1">
+                            <div className="p-1 px-1.5 bg-[#0056b3]/10 text-[#0056b3] rounded text-[10px] font-extrabold uppercase tracking-widest leading-none">COMMAND CENTER</div>
+                            <h3 className="text-sm font-extrabold text-slate-800 tracking-tight flex items-center gap-1.5">
+                              <CalendarDays className="w-4 h-4 text-[#0056b3]" />
+                              Trung tâm Giám sát & Quản lý Hạn Công việc
+                            </h3>
+                          </div>
+                          <p className="text-[11px] text-slate-500 leading-relaxed max-w-xl">
+                            Thống kê chi tiết từng hạng mục công việc chuẩn bị và tổ chức thực hiện GPMB. Bấm nhanh vào đầu việc để xem chi tiết hồ sơ & tài liệu liên quan.
+                          </p>
                         </div>
-                        <span className="text-[10px] text-slate-400 font-semibold bg-slate-50 border border-slate-100 rounded-full px-2.5 py-0.5 select-none">
-                          Tự động cập nhật
-                        </span>
+                        <div className="flex items-center gap-2 shrink-0 self-start sm:self-center">
+                          <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                          </span>
+                          <span className="text-[9.5px] text-slate-450 font-bold bg-white border border-slate-200 shadow-3xs rounded-full px-2.5 py-1 uppercase tracking-wider select-none leading-none">
+                            Số liệu trực quan
+                          </span>
+                        </div>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Cột 1: Đầu việc đã quá hạn */}
-                        <div className="flex flex-col">
-                          <div className="flex items-center gap-1.5 mb-3">
-                            <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0 inline-block"></span>
-                            <span className="text-xs font-bold uppercase tracking-wider text-red-600 flex items-center gap-1">
-                              <AlertTriangle className="w-3.5 h-3.5" />
-                              Đầu việc đã quá hạn ({overdueList.length})
-                            </span>
+                      {/* 1. Bento Columns - Quick Metrics Snapshot */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 border-b border-slate-100 divide-y md:divide-y-0 md:divide-x divide-slate-100 bg-white">
+                        
+                        {/* 1.1. Overdue Summary Box */}
+                        <div className="p-5 flex items-center gap-4 hover:bg-slate-50/30 transition-colors duration-150">
+                          <div className={cn(
+                            "w-12 h-12 rounded-xl flex items-center justify-center border shrink-0 transition-transform duration-300",
+                            overdueList.length > 0 
+                              ? "bg-rose-50 border-rose-100 text-rose-500 shadow-xs" 
+                              : "bg-slate-50 border-slate-200 text-slate-400"
+                          )}>
+                            <AlertTriangle className={cn("w-6 h-6", overdueList.length > 0 ? "animate-pulse" : "")} />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-baseline gap-1.5 leading-none">
+                              <span className={cn(
+                                "text-2xl font-black tracking-tight",
+                                overdueList.length > 0 ? "text-rose-600" : "text-slate-500"
+                              )}>
+                                {overdueList.length}
+                              </span>
+                              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">đầu việc</span>
+                            </div>
+                            <p className="text-[11px] font-bold text-slate-700 mt-1 leading-none">Quá hạn cần ưu tiên xử lý</p>
+                            <p className="text-[10px] text-slate-400 mt-1 truncate">
+                              {overdueList.length > 0 ? "Yêu cầu khẩn trương rà soát phối hợp" : "Không có công việc chậm tiến độ"}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* 1.2. Upcoming Summary Box */}
+                        <div className="p-5 flex items-center gap-4 hover:bg-slate-50/30 transition-colors duration-150">
+                          <div className={cn(
+                            "w-12 h-12 rounded-xl flex items-center justify-center border shrink-0",
+                            upcomingList.length > 0 
+                              ? "bg-amber-50 border-amber-100 text-amber-500 shadow-xs" 
+                              : "bg-slate-50 border-slate-200 text-slate-400"
+                          )}>
+                            <Clock className="w-5 h-5" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-baseline gap-1.5 leading-none">
+                              <span className={cn(
+                                "text-2xl font-black tracking-tight",
+                                upcomingList.length > 0 ? "text-amber-600" : "text-slate-500"
+                              )}>
+                                {upcomingList.length}
+                              </span>
+                              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">đầu việc</span>
+                            </div>
+                            <p className="text-[11px] font-bold text-slate-700 mt-1 leading-none">Sắp đến hạn cần lưu ý</p>
+                            <p className="text-[10px] text-slate-400 mt-1 truncate">
+                              {upcomingList.length > 0 ? "Chuẩn bị đầy đủ biên bản, hồ sơ" : "Chưa có hạn kế tiếp được xếp"}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* 1.3. Health Completion Rate */}
+                        <div className="p-5 flex items-center gap-4 hover:bg-slate-50/30 transition-colors duration-150">
+                          <div className="w-12 h-12 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-500 flex items-center justify-center shrink-0 shadow-xs">
+                            <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-baseline gap-1.5 leading-none">
+                              <span className="text-2xl font-black text-emerald-600 tracking-tight">
+                                {completionPercent}%
+                              </span>
+                              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">hoàn thành</span>
+                            </div>
+                            <p className="text-[11px] font-bold text-slate-700 mt-1 leading-none">Tiến độ quy trình chung</p>
+                            
+                            {/* Simple visual progress status line */}
+                            <div className="w-full bg-slate-100 rounded-full h-1.5 mt-2 overflow-hidden">
+                              <div 
+                                className="bg-emerald-500 h-1.5 rounded-full transition-all duration-500" 
+                                style={{ width: `${completionPercent}%` }} 
+                              />
+                            </div>
+                            <p className="text-[9.5px] text-slate-450 mt-1.5 font-semibold leading-none">
+                              Đã giải quyết xong {completedSteps} trong số {totalSteps} danh mục
+                            </p>
+                          </div>
+                        </div>
+
+                      </div>
+
+                      {/* 2. Main Executive Grid of Lists */}
+                      <div className="grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-slate-200 p-5 gap-6 lg:gap-0 bg-slate-50/15">
+                        
+                        {/* 2.1. Cột Trái: Đầu việc đã quá hạn */}
+                        <div className="flex flex-col lg:pr-5">
+                          <div className="flex items-center justify-between mb-4 pb-1">
+                            <div className="flex items-center gap-2">
+                              <span className="w-2 h-2 rounded-full bg-rose-500 block"></span>
+                              <span className="text-[11px] font-extrabold uppercase tracking-wider text-rose-600 flex items-center gap-1.5">
+                                DANH MỤC QUÁ HẠN GIẢI QUYẾT ({overdueList.length})
+                              </span>
+                            </div>
+                            {overdueList.length > 0 && (
+                              <span className="text-[9.5px] font-extrabold text-white bg-rose-500 px-1.5 py-0.5 rounded-sm shadow-3xs uppercase tracking-wide leading-none">Yêu cầu khẩn</span>
+                            )}
                           </div>
 
                           {overdueList.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center p-6 bg-emerald-50/40 border border-emerald-100 rounded-lg text-center select-none">
-                              <CheckCircle2 className="w-6 h-6 text-emerald-500 mb-1.5 shrink-0" />
-                              <p className="text-xs font-bold text-emerald-700">Tất cả đều đúng tiến độ</p>
-                              <p className="text-[10px] text-emerald-500 mt-0.5">Không có đầu việc quá hạn cần xử lý</p>
+                            <div className="flex flex-col items-center justify-center p-8 bg-emerald-55/20 border border-emerald-100 rounded-xl text-center select-none flex-1 min-h-[220px]">
+                              <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center border border-emerald-100 mb-2">
+                                <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                              </div>
+                              <p className="text-xs font-bold text-emerald-800">Tuyệt vời! Đúng tiến độ</p>
+                              <p className="text-[10px] text-emerald-500 mt-1 max-w-[200px]">
+                                Hiện tại không có đầu mục hồ sơ nào bị trễ hạn so với kế hoạch ban đầu.
+                              </p>
                             </div>
                           ) : (
-                            <div className="flex flex-col gap-2 max-h-[350px] overflow-y-auto pr-1 no-scrollbar">
+                            <div className="flex flex-col gap-2.5 max-h-[380px] overflow-y-auto pr-1 no-scrollbar">
                               {overdueList.map((task) => (
-                                <div 
+                                <motion.div 
+                                  layout
                                   key={task.id}
                                   onClick={() => {
                                     setActiveCategoryId(task.categoryId);
                                     setActiveStepKey(task.stepKey);
                                   }}
-                                  className="group flex items-center justify-between gap-3 p-3 bg-red-50/30 hover:bg-red-50 border border-red-100 hover:border-red-200 rounded-lg cursor-pointer transition-all duration-150 active:scale-[0.98] select-none"
+                                  className="group flex items-center justify-between gap-3 p-3 bg-white hover:bg-rose-50/30 border border-slate-200 hover:border-rose-200.20 rounded-xl cursor-pointer transition-all duration-150 active:scale-[0.99] shadow-2xs hover:shadow-xs select-none"
                                 >
-                                  <div className="min-w-0 flex-1">
-                                    <h4 className="text-xs font-bold text-slate-800 group-hover:text-red-700 transition-colors line-clamp-2 leading-snug">
+                                  <div className="min-w-0 flex-1 pl-1">
+                                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                      <span className={cn(
+                                        "text-[9px] px-1.5 py-0.5 rounded font-bold tracking-tight uppercase shadow-2xs border leading-none shrink-0",
+                                        task.categoryId === 'preparation' 
+                                          ? "bg-slate-100 text-slate-500 border-slate-200" 
+                                          : "bg-blue-50 text-blue-600 border-blue-105"
+                                      )}>
+                                        {task.categoryId === 'preparation' ? 'Chuẩn bị' : 'Thực hiện'}
+                                      </span>
+                                      <span className="text-[10px] text-slate-400 font-medium flex items-center gap-1">
+                                        <CalendarDays className="w-3 h-3 shrink-0" />
+                                        Hạn: {task.deadlineStr}
+                                      </span>
+                                    </div>
+                                    <h4 className="text-xs font-bold text-slate-800 group-hover:text-[#0056b3] transition-colors line-clamp-2 leading-relaxed">
                                       {task.name}
                                     </h4>
-                                    <div className="flex items-center gap-2 mt-1.5 text-[10px] font-semibold text-slate-400">
-                                      <span>Hạn chót: {task.deadlineStr}</span>
-                                    </div>
                                   </div>
-                                  <div className="shrink-0 flex items-center gap-1.5 text-right">
-                                    <span className="text-[11px] font-extrabold text-red-600 bg-red-100/50 border border-red-200/40 px-2 py-0.5 rounded-md min-w-[75px] text-center shrink-0">
-                                      Quá {task.days} ngày
+                                  <div className="shrink-0 flex items-center gap-2 text-right">
+                                    <span className="text-[10px] font-extrabold uppercase text-rose-600 bg-rose-50 border border-rose-220/50 px-2.5 py-1 rounded-md min-w-[85px] text-center shadow-3xs group-hover:bg-rose-500 group-hover:text-white group-hover:border-transparent transition-all shrink-0 leading-none">
+                                      Trễ {task.days} ngày
                                     </span>
-                                    <ChevronRight className="w-3.5 h-3.5 text-red-400 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all shrink-0" />
+                                    <ExternalLink className="w-3.5 h-3.5 text-[#0056b3] opacity-0 group-hover:opacity-100 transition-all shrink-0" />
                                   </div>
-                                </div>
+                                </motion.div>
                               ))}
                             </div>
                           )}
                         </div>
 
-                        {/* Cột 2: Đầu việc sắp đến hạn */}
-                        <div className="flex flex-col">
-                          <div className="flex items-center gap-1.5 mb-3">
-                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0 inline-block"></span>
-                            <span className="text-xs font-bold uppercase tracking-wider text-amber-600 flex items-center gap-1">
-                              <Clock3 className="w-3.5 h-3.5" />
-                              Đầu việc sắp đến hạn ({upcomingList.length})
-                            </span>
+                        {/* 2.2. Cột Phải: Đầu việc sắp đến hạn */}
+                        <div className="flex flex-col lg:pl-5 pt-6 lg:pt-0 border-t lg:border-t-0 border-slate-150">
+                          <div className="flex items-center justify-between mb-4 pb-1">
+                            <div className="flex items-center gap-2">
+                              <span className="w-2 h-2 rounded-full bg-amber-50 block"></span>
+                              <span className="text-[11px] font-extrabold uppercase tracking-wider text-amber-600 flex items-center gap-1.5">
+                                TIẾN ĐỘ SẮP ĐẾN HẠN ({upcomingList.length})
+                              </span>
+                            </div>
+                            {upcomingList.length > 0 && (
+                              <span className="text-[9.5px] font-extrabold text-amber-800 bg-amber-100/60 px-1.5 py-0.5 rounded-sm">Kế hoạch gần</span>
+                            )}
                           </div>
 
                           {upcomingList.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center p-6 bg-slate-50 border border-slate-150 rounded-lg text-center select-none">
-                              <CalendarDays className="w-6 h-6 text-slate-350 mb-1.5 shrink-0" />
-                              <p className="text-xs font-bold text-slate-500">Chưa xếp hạn tiếp theo</p>
-                              <p className="text-[10px] text-slate-400 mt-0.5">Không tìm thấy đầu việc nào sắp đến hạn</p>
+                            <div className="flex flex-col items-center justify-center p-8 bg-slate-100/40 border border-slate-200/50 rounded-xl text-center select-none flex-1 min-h-[220px]">
+                              <div className="w-10 h-10 bg-slate-50 text-slate-400 rounded-lg flex items-center justify-center border border-slate-200 mb-2">
+                                <CalendarDays className="w-5 h-5" />
+                              </div>
+                              <p className="text-xs font-bold text-slate-700">Dữ liệu ổn định</p>
+                              <p className="text-[10px] text-slate-400 mt-1 max-w-[200px]">
+                                Hệ thống chưa lên lịch ngày hết hạn cụ thể tiếp theo trong danh sách.
+                              </p>
                             </div>
                           ) : (
-                            <div className="flex flex-col gap-2 max-h-[350px] overflow-y-auto pr-1 no-scrollbar">
+                            <div className="flex flex-col gap-2.5 max-h-[380px] overflow-y-auto pr-1 no-scrollbar">
                               {upcomingList.map((task) => (
-                                <div 
+                                <motion.div 
+                                  layout
                                   key={task.id}
                                   onClick={() => {
                                     setActiveCategoryId(task.categoryId);
                                     setActiveStepKey(task.stepKey);
                                   }}
-                                  className="group flex items-center justify-between gap-3 p-3 bg-amber-50/20 hover:bg-amber-50/60 border border-amber-100 hover:border-amber-200 rounded-lg cursor-pointer transition-all duration-150 active:scale-[0.98] select-none"
+                                  className="group flex items-center justify-between gap-3 p-3 bg-white hover:bg-amber-50/10 border border-slate-200 hover:border-amber-200 rounded-xl cursor-pointer transition-all duration-150 active:scale-[0.99] shadow-2xs hover:shadow-xs select-none"
                                 >
-                                  <div className="min-w-0 flex-1">
-                                    <h4 className="text-xs font-bold text-slate-800 group-hover:text-amber-700 transition-colors line-clamp-2 leading-snug">
+                                  <div className="min-w-0 flex-1 pl-1">
+                                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                      <span className={cn(
+                                        "text-[9px] px-1.5 py-0.5 rounded font-bold tracking-tight uppercase shadow-2xs border leading-none shrink-0",
+                                        task.categoryId === 'preparation' 
+                                          ? "bg-slate-100 text-slate-500 border-slate-200" 
+                                          : "bg-blue-50 text-blue-600 border-blue-105"
+                                      )}>
+                                        {task.categoryId === 'preparation' ? 'Chuẩn bị' : 'Thực hiện'}
+                                      </span>
+                                      <span className="text-[10px] text-slate-400 font-medium flex items-center gap-1">
+                                        <CalendarDays className="w-3 h-3 shrink-0" />
+                                        Hạn: {task.deadlineStr}
+                                      </span>
+                                    </div>
+                                    <h4 className="text-xs font-bold text-slate-800 group-hover:text-[#0056b3] transition-colors line-clamp-2 leading-relaxed">
                                       {task.name}
                                     </h4>
-                                    <div className="flex items-center gap-2 mt-1.5 text-[10px] font-semibold text-slate-400">
-                                      <span>Hạn chót: {task.deadlineStr}</span>
-                                    </div>
                                   </div>
-                                  <div className="shrink-0 flex items-center gap-1.5 text-right">
+                                  <div className="shrink-0 flex items-center gap-2 text-right">
                                     <span className={cn(
-                                      "text-[11px] font-extrabold px-2 py-0.5 rounded-md min-w-[75px] text-center shrink-0 border",
+                                      "text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-md min-w-[85px] text-center border shadow-3xs transition-all shrink-0 leading-none",
                                       task.days === 0 
-                                        ? "text-rose-600 bg-rose-50 border-rose-200" 
+                                        ? "text-rose-650 bg-rose-50 border-rose-220 group-hover:bg-rose-500 group-hover:text-white" 
                                         : task.days <= 3 
-                                          ? "text-orange-600 bg-orange-50 border-orange-200" 
-                                          : "text-slate-600 bg-slate-50 border-slate-200"
+                                          ? "text-orange-650 bg-orange-50 border-orange-220 group-hover:bg-orange-400 group-hover:text-white" 
+                                          : "text-slate-650 bg-slate-50 border-slate-250 group-hover:bg-[#0056b3] group-hover:text-white"
                                     )}>
-                                      {task.days === 0 ? 'Hạn hôm nay' : `Còn ${task.days} ngày`}
+                                      {task.days === 0 ? 'Hạn Hôm nay' : `Còn ${task.days} ngày`}
                                     </span>
-                                    <ChevronRight className="w-3.5 h-3.5 text-amber-400 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all shrink-0" />
+                                    <ExternalLink className="w-3.5 h-3.5 text-[#0056b3] opacity-0 group-hover:opacity-100 transition-all shrink-0" />
                                   </div>
-                                </div>
+                                </motion.div>
                               ))}
                             </div>
                           )}
                         </div>
+
                       </div>
                     </div>
-
                   );
                 })()}
 
