@@ -38,6 +38,7 @@ export const ProjectMainView = ({
 }: ProjectMainViewProps) => {
   const [activeCategoryId, setActiveCategoryId] = useState<string>('overview');
   const [activeStepKey, setActiveStepKey] = useState<string | null>('overview');
+  const [isInfoCollapsed, setIsInfoCollapsed] = useState(true);
   const [configCategoryId, setConfigCategoryId] = useState<string>('preparation');
 
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({
@@ -124,6 +125,7 @@ export const ProjectMainView = ({
   useEffect(() => {
     setActiveCategoryId('overview');
     setActiveStepKey('overview');
+    setIsInfoCollapsed(true);
     setExpandedCategories({
       'preparation': false,
       'execution_detail': false
@@ -135,6 +137,11 @@ export const ProjectMainView = ({
     setShowEmailInput(false);
     setNewEmail('');
   }, [project.id]);
+
+  // Always collapse Project Info section when leaving or entering overview/step change
+  useEffect(() => {
+    setIsInfoCollapsed(true);
+  }, [activeStepKey]);
 
   // Synchronize activeStepKey when activeCategoryId or progress/steps order changes
   useEffect(() => {
@@ -424,12 +431,14 @@ export const ProjectMainView = ({
       className="max-w-[1240px] w-full mx-auto"
     >
       <div className="bg-white rounded-xl p-5 md:p-8 border border-slate-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.015)]">
-        <ProjectHeader 
-          project={project} 
-          isAdmin={isAdmin} 
-          canEdit={canEdit}
-          onProjectDeleted={onProjectDeleted} 
-        />
+        {activeStepKey === 'overview' && (
+          <ProjectHeader 
+            project={project} 
+            isAdmin={isAdmin} 
+            canEdit={canEdit}
+            onProjectDeleted={onProjectDeleted} 
+          />
+        )}
 
         {activeStepKey === 'overview' ? (
           <div className="mt-6 font-sans">
@@ -437,190 +446,218 @@ export const ProjectMainView = ({
               
               {/* Cột trái (70%) */}
               <div className="lg:col-span-2 space-y-6">
-                
                 {/* 1. Phần thông tin chung */}
-                <div className="bg-white rounded-lg p-5 border border-slate-200 shadow-sm relative overflow-hidden">
+                <div className="bg-white rounded-lg border border-slate-200/80 shadow-sm relative overflow-hidden transition-all duration-200">
                   <div className="absolute top-0 left-0 w-full h-1 bg-[#0056b3]"></div>
-                  <h3 className="text-sm font-bold text-slate-800 mb-4 tracking-tight">Thông tin chung</h3>
                   
-                  <div className="space-y-0 text-sm">
-                    {/* Trạng thái dự án */}
-                    <div className="flex items-center justify-between py-3 border-b border-slate-100">
-                      <span className="font-semibold text-slate-500 whitespace-nowrap">Trạng thái:</span>
-                      <div className="w-48">
-                        {canEdit ? (
-                          <AppSelect
-                            options={[
-                              { value: 'active', label: 'Đang thực hiện' },
-                              { value: 'completed', label: 'Hoàn thành' }
-                            ]}
-                            value={{
-                              value: project.status === 'archived' ? 'completed' : project.status,
-                              label: (project.status === 'archived' || project.status === 'completed') ? 'Hoàn thành' : 'Đang thực hiện'
-                            }}
-                            onChange={async (opt) => {
-                              const val = (opt as any)?.value;
-                              if (val) {
-                                try {
-                                  await updateProjectField(project.id, 'status', val, 'trạng thái dự án');
-                                  toast.success('Đã cập nhật trạng thái');
-                                } catch (err) {
-                                  handleFirestoreError(err, OperationType.UPDATE, `projects/${project.id}`);
-                                }
-                              }
-                            }}
-                          />
-                        ) : (
-                          <div className={cn(
-                            "text-xs font-bold uppercase tracking-wider border px-3 py-1.5 rounded-lg text-center",
-                            project.status === 'active' ? "bg-amber-50 text-amber-600 border-amber-200" :
-                            "bg-emerald-50 text-emerald-600 border-emerald-200"
-                          )}>
-                            {project.status === 'active' ? 'Đang thực hiện' : 'Hoàn thành'}
-                          </div>
-                        )}
-                      </div>
+                  {/* Header click to collapse/expand */}
+                  <div 
+                    onClick={() => setIsInfoCollapsed(!isInfoCollapsed)}
+                    className="flex items-center justify-between p-4 cursor-pointer select-none hover:bg-slate-50/55 transition-colors"
+                  >
+                    <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                      <span className="text-sm font-extrabold text-slate-800 tracking-tight">Thông tin dự án</span>
+                      <span className="text-xs text-slate-400 font-medium">(bấm để {isInfoCollapsed ? 'mở rộng' : 'thu gọn'})</span>
                     </div>
-
-                    {/* Loại hình đất GPMB */}
-                    <div className="flex items-center justify-between py-3 border-b border-slate-100">
-                      <span className="font-semibold text-slate-500 whitespace-nowrap">Loại hình đất:</span>
-                      <div className="w-56">
-                        {canEdit ? (
-                          <AppSelect
-                            options={[
-                              { value: 'agri', label: 'Đất nông nghiệp' },
-                              { value: 'resident', label: 'Đất phi nông nghiệp' },
-                              { value: 'both', label: 'Nông nghiệp & Phi nông nghiệp' }
-                            ]}
-                            value={{
-                              value: project.projectType || 'both',
-                              label: project.projectType === 'agri' ? 'Đất nông nghiệp' : project.projectType === 'resident' ? 'Đất phi nông nghiệp' : 'Nông nghiệp & Phi nông nghiệp'
-                            }}
-                            onChange={async (opt) => {
-                              const val = (opt as any)?.value;
-                              if (val) {
-                                try {
-                                  await updateProjectField(project.id, 'projectType', val, 'loại hình dự án');
-                                  toast.success('Đã cập nhật loại hình đất');
-                                } catch (err) {
-                                  handleFirestoreError(err, OperationType.UPDATE, `projects/${project.id}`);
-                                }
-                              }
-                            }}
-                          />
-                        ) : (
-                          <div className="text-xs font-bold text-slate-700 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-center">
-                            {project.projectType === 'agri' ? 'Đất nông nghiệp' : project.projectType === 'resident' ? 'Đất phi nông nghiệp' : 'Nông nghiệp & Phi nông nghiệp'}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Hạn hoàn thành */}
-                    <div className="flex items-center justify-between py-3 border-b border-slate-100">
-                      <span className="font-semibold text-slate-500 whitespace-nowrap">Hạn hoàn thành:</span>
-                      <div className="w-32 shrink-0">
-                        <CustomDatePicker 
-                          value={project.deadline || ''} 
-                          onChange={async (val) => {
-                            if (canEdit) {
-                              try {
-                                await updateProjectField(project.id, 'deadline', val, 'hạn hoàn thành');
-                                toast.success('Đã cập nhật hạn hoàn thành');
-                              } catch (err) {
-                                handleFirestoreError(err, OperationType.UPDATE, `projects/${project.id}`);
-                              }
-                            }
-                          }}
-                          readOnly={!canEdit}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Chủ đầu tư */}
-                    <div className="flex items-center justify-between py-3 border-b border-slate-100">
-                      <span className="font-semibold text-slate-500 whitespace-nowrap">Chủ đầu tư:</span>
-                      <div className="w-1/2 text-right">
-                        <EditableInput 
-                          value={project.investor || ''}
-                          placeholder="Nhập chủ đầu tư..."
-                          className="text-sm font-semibold text-slate-800 text-right bg-transparent focus:bg-white border border-transparent focus:border-[#0056b3] focus:ring-2 focus:ring-[#0056b3]/20 rounded-md outline-none transition-all w-full px-2 py-1"
-                          onSave={async (val) => {
-                            if (canEdit) {
-                              try {
-                                await updateProjectField(project.id, 'investor', val, 'chủ đầu tư');
-                                toast.success('Đã cập nhật chủ đầu tư');
-                              } catch (err) {
-                                handleFirestoreError(err, OperationType.UPDATE, `projects/${project.id}`);
-                              }
-                            }
-                          }}
-                          readOnly={!canEdit}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Địa điểm thực hiện */}
-                    <div className="flex items-center justify-between py-3 border-b border-slate-100">
-                      <span className="font-semibold text-slate-500 whitespace-nowrap">Địa điểm thực hiện:</span>
-                      <div className="w-1/2 text-right">
-                        <EditableInput 
-                          value={project.location || ''}
-                          placeholder="Nhập địa điểm..."
-                          className="text-sm font-semibold text-slate-800 text-right bg-transparent focus:bg-white border border-transparent focus:border-[#0056b3] focus:ring-2 focus:ring-[#0056b3]/20 rounded-md outline-none transition-all w-full px-2 py-1"
-                          onSave={async (val) => {
-                            if (canEdit) {
-                              try {
-                                await updateProjectField(project.id, 'location', val, 'địa điểm thực hiện');
-                                toast.success('Đã cập nhật địa điểm thực hiện');
-                              } catch (err) {
-                                handleFirestoreError(err, OperationType.UPDATE, `projects/${project.id}`);
-                              }
-                            }
-                          }}
-                          readOnly={!canEdit}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Hồ sơ liên quan */}
-                    <div className="flex items-center justify-between py-3">
-                      <span className="font-semibold text-slate-500 whitespace-nowrap flex items-center gap-1.5">
-                        <span>Hồ sơ liên quan:</span>
-                        {project.documentLink && (project.documentLink.startsWith('http://') || project.documentLink.startsWith('https://')) && (
-                          <a 
-                            href={project.documentLink} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-[#0056b3] hover:text-[#003d82] inline-flex items-center gap-1 transition-all cursor-pointer bg-blue-50 hover:bg-blue-100 px-1.5 py-0.5 rounded text-[10px] font-bold"
-                            title="Mở liên kết tài liệu"
-                          >
-                            <ExternalLink className="w-3 h-3" />
-                            <span>Mở link</span>
-                          </a>
-                        )}
-                      </span>
-                      <div className="w-1/2 text-right">
-                        <EditableInput 
-                          value={project.documentLink || ''}
-                          placeholder={canEdit ? "Dán link Google Drive..." : "Chưa có liên kết"}
-                          className="text-sm font-semibold text-slate-800 text-right bg-transparent focus:bg-white border border-transparent focus:border-[#0056b3] focus:ring-2 focus:ring-[#0056b3]/20 rounded-md outline-none transition-all w-full px-2 py-1"
-                          onSave={async (val) => {
-                            if (canEdit) {
-                              try {
-                                await updateProjectField(project.id, 'documentLink', val, 'hồ sơ liên quan');
-                                toast.success('Đã cập nhật hồ sơ liên quan');
-                              } catch (err) {
-                                handleFirestoreError(err, OperationType.UPDATE, `projects/${project.id}`);
-                              }
-                            }
-                          }}
-                          readOnly={!canEdit}
-                        />
-                      </div>
+                    <div className="text-slate-400 hover:text-slate-600 transition-colors p-1 rounded-md hover:bg-slate-100">
+                      {isInfoCollapsed ? (
+                        <ChevronDown className="w-4 h-4" />
+                      ) : (
+                        <ChevronUp className="w-4 h-4" />
+                      )}
                     </div>
                   </div>
+                  
+                  <AnimatePresence initial={false}>
+                    {!isInfoCollapsed && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="px-5 pb-5 pt-1 border-t border-slate-100/70 space-y-0 text-sm">
+                          {/* Trạng thái dự án */}
+                          <div className="flex items-center justify-between py-3 border-b border-slate-100">
+                            <span className="font-semibold text-slate-500 whitespace-nowrap">Trạng thái:</span>
+                            <div className="w-48">
+                              {canEdit ? (
+                                <AppSelect
+                                  options={[
+                                    { value: 'active', label: 'Đang thực hiện' },
+                                    { value: 'completed', label: 'Hoàn thành' }
+                                  ]}
+                                  value={{
+                                    value: project.status === 'archived' ? 'completed' : project.status,
+                                    label: (project.status === 'archived' || project.status === 'completed') ? 'Hoàn thành' : 'Đang thực hiện'
+                                  }}
+                                  onChange={async (opt) => {
+                                    const val = (opt as any)?.value;
+                                    if (val) {
+                                      try {
+                                        await updateProjectField(project.id, 'status', val, 'trạng thái dự án');
+                                        toast.success('Đã cập nhật trạng thái');
+                                      } catch (err) {
+                                        handleFirestoreError(err, OperationType.UPDATE, `projects/${project.id}`);
+                                      }
+                                    }
+                                  }}
+                                />
+                              ) : (
+                                <div className={cn(
+                                  "text-xs font-bold uppercase tracking-wider border px-3 py-1.5 rounded-lg text-center",
+                                  project.status === 'active' ? "bg-amber-50 text-amber-600 border-amber-200" :
+                                  "bg-emerald-50 text-emerald-600 border-emerald-200"
+                                )}>
+                                  {project.status === 'active' ? 'Đang thực hiện' : 'Hoàn thành'}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Loại hình đất GPMB */}
+                          <div className="flex items-center justify-between py-3 border-b border-slate-100">
+                            <span className="font-semibold text-slate-500 whitespace-nowrap">Loại hình đất:</span>
+                            <div className="w-56">
+                              {canEdit ? (
+                                <AppSelect
+                                  options={[
+                                    { value: 'agri', label: 'Đất nông nghiệp' },
+                                    { value: 'resident', label: 'Đất phi nông nghiệp' },
+                                    { value: 'both', label: 'Nông nghiệp & Phi nông nghiệp' }
+                                  ]}
+                                  value={{
+                                    value: project.projectType || 'both',
+                                    label: project.projectType === 'agri' ? 'Đất nông nghiệp' : project.projectType === 'resident' ? 'Đất phi nông nghiệp' : 'Nông nghiệp & Phi nông nghiệp'
+                                  }}
+                                  onChange={async (opt) => {
+                                    const val = (opt as any)?.value;
+                                    if (val) {
+                                      try {
+                                        await updateProjectField(project.id, 'projectType', val, 'loại hình dự án');
+                                        toast.success('Đã cập nhật loại hình đất');
+                                      } catch (err) {
+                                        handleFirestoreError(err, OperationType.UPDATE, `projects/${project.id}`);
+                                      }
+                                    }
+                                  }}
+                                />
+                              ) : (
+                                <div className="text-xs font-bold text-slate-700 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-center">
+                                  {project.projectType === 'agri' ? 'Đất nông nghiệp' : project.projectType === 'resident' ? 'Đất phi nông nghiệp' : 'Nông nghiệp & Phi nông nghiệp'}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Hạn hoàn thành */}
+                          <div className="flex items-center justify-between py-3 border-b border-slate-100">
+                            <span className="font-semibold text-slate-500 whitespace-nowrap">Hạn hoàn thành:</span>
+                            <div className="w-32 shrink-0">
+                              <CustomDatePicker 
+                                value={project.deadline || ''} 
+                                onChange={async (val) => {
+                                  if (canEdit) {
+                                    try {
+                                      await updateProjectField(project.id, 'deadline', val, 'hạn hoàn thành');
+                                      toast.success('Đã cập nhật hạn hoàn thành');
+                                    } catch (err) {
+                                      handleFirestoreError(err, OperationType.UPDATE, `projects/${project.id}`);
+                                    }
+                                  }
+                                }}
+                                readOnly={!canEdit}
+                              />
+                            </div>
+                          </div>
+
+                          {/* Chủ đầu tư */}
+                          <div className="flex items-center justify-between py-3 border-b border-slate-100">
+                            <span className="font-semibold text-slate-500 whitespace-nowrap">Chủ đầu tư:</span>
+                            <div className="w-1/2 text-right">
+                              <EditableInput 
+                                value={project.investor || ''}
+                                placeholder="Nhập chủ đầu tư..."
+                                className="text-sm font-semibold text-slate-800 text-right bg-transparent focus:bg-white border border-transparent focus:border-[#0056b3] focus:ring-2 focus:ring-[#0056b3]/20 rounded-md outline-none transition-all w-full px-2 py-1"
+                                onSave={async (val) => {
+                                  if (canEdit) {
+                                    try {
+                                      await updateProjectField(project.id, 'investor', val, 'chủ đầu tư');
+                                      toast.success('Đã cập nhật chủ đầu tư');
+                                    } catch (err) {
+                                      handleFirestoreError(err, OperationType.UPDATE, `projects/${project.id}`);
+                                    }
+                                  }
+                                }}
+                                readOnly={!canEdit}
+                              />
+                            </div>
+                          </div>
+
+                          {/* Địa điểm thực hiện */}
+                          <div className="flex items-center justify-between py-3 border-b border-slate-100">
+                            <span className="font-semibold text-slate-500 whitespace-nowrap">Địa điểm thực hiện:</span>
+                            <div className="w-1/2 text-right">
+                              <EditableInput 
+                                value={project.location || ''}
+                                placeholder="Nhập địa điểm..."
+                                className="text-sm font-semibold text-slate-800 text-right bg-transparent focus:bg-white border border-transparent focus:border-[#0056b3] focus:ring-2 focus:ring-[#0056b3]/20 rounded-md outline-none transition-all w-full px-2 py-1"
+                                onSave={async (val) => {
+                                  if (canEdit) {
+                                    try {
+                                      await updateProjectField(project.id, 'location', val, 'địa điểm thực hiện');
+                                      toast.success('Đã cập nhật địa điểm thực hiện');
+                                    } catch (err) {
+                                      handleFirestoreError(err, OperationType.UPDATE, `projects/${project.id}`);
+                                    }
+                                  }
+                                }}
+                                readOnly={!canEdit}
+                              />
+                            </div>
+                          </div>
+
+                          {/* Hồ sơ liên quan */}
+                          <div className="flex items-center justify-between py-3">
+                            <span className="font-semibold text-slate-500 whitespace-nowrap flex items-center gap-1.5">
+                              <span>Hồ sơ liên quan:</span>
+                              {project.documentLink && (project.documentLink.startsWith('http://') || project.documentLink.startsWith('https://')) && (
+                                <a 
+                                  href={project.documentLink} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="text-[#0056b3] hover:text-[#003d82] inline-flex items-center gap-1 transition-all cursor-pointer bg-blue-50 hover:bg-blue-100 px-1.5 py-0.5 rounded text-[10px] font-bold"
+                                  title="Mở liên kết tài liệu"
+                                >
+                                  <ExternalLink className="w-3 h-3" />
+                                  <span>Mở link</span>
+                                </a>
+                              )}
+                            </span>
+                            <div className="w-1/2 text-right">
+                              <EditableInput 
+                                value={project.documentLink || ''}
+                                placeholder={canEdit ? "Dán link Google Drive..." : "Chưa có liên kết"}
+                                className="text-sm font-semibold text-slate-800 text-right bg-transparent focus:bg-white border border-transparent focus:border-[#0056b3] focus:ring-2 focus:ring-[#0056b3]/20 rounded-md outline-none transition-all w-full px-2 py-1"
+                                onSave={async (val) => {
+                                  if (canEdit) {
+                                    try {
+                                      await updateProjectField(project.id, 'documentLink', val, 'hồ sơ liên quan');
+                                      toast.success('Đã cập nhật hồ sơ liên quan');
+                                    } catch (err) {
+                                      handleFirestoreError(err, OperationType.UPDATE, `projects/${project.id}`);
+                                    }
+                                  }
+                                }}
+                                readOnly={!canEdit}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
 
                 {/* 1.1. Theo dõi hạn thực hiện công việc */}

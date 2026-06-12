@@ -38,7 +38,7 @@ export const ProjectHeader = ({ project, isAdmin, canEdit, onProjectDeleted }: P
                     value={tempName}
                     placeholder="Nhập tên dự án..."
                     autoFocus
-                    className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 bg-white border border-[#0056b3] focus:ring-2 focus:ring-[#0056b3]/20 rounded-lg outline-none transition-all w-full py-1 px-2 font-sans"
+                    className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-800 bg-white border border-[#0056b3]/80 focus:ring-4 focus:ring-[#0056b3]/10 rounded-xl outline-none transition-all w-full py-1.5 px-3 font-sans leading-tight sm:leading-snug"
                     onChange={(e) => setTempName(e.target.value)}
                     onBlur={async () => {
                       setIsEditingName(false);
@@ -70,20 +70,20 @@ export const ProjectHeader = ({ project, isAdmin, canEdit, onProjectDeleted }: P
                 </div>
               ) : (
                 <div 
-                  className="group flex items-center gap-2 cursor-pointer rounded-lg hover:bg-slate-50/75 py-1 px-1.5 transition-all select-none w-full md:w-auto"
+                  className="group flex items-start gap-2.5 cursor-pointer rounded-xl hover:bg-slate-50/75 py-1.5 px-2 transition-all select-none w-full max-w-full"
                   onClick={() => setIsEditingName(true)}
                   title="Nhấp để sửa tên dự án"
                 >
-                  <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-909 font-sans leading-none truncate max-w-full">
+                  <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 font-sans leading-tight sm:leading-snug break-words whitespace-normal flex-1 py-0.5 min-w-0">
                     {project.name}
                   </h1>
-                  <span className="p-1 px-1.5 text-slate-400 group-hover:text-[#0056b3] group-hover:bg-blue-50 rounded transition-all shrink-0">
+                  <span className="p-1.5 text-slate-400 group-hover:text-[#0056b3] group-hover:bg-blue-50/80 rounded-lg transition-all shrink-0 mt-0.5 sm:mt-1">
                     <Pencil className="w-4 h-4" />
                   </span>
                 </div>
               )
             ) : (
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 truncate flex-1 min-w-0 font-sans px-2">
+              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 font-sans leading-tight sm:leading-snug break-words whitespace-normal w-full py-0.5">
                 {project.name}
               </h1>
             )}

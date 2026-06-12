@@ -1114,21 +1114,35 @@ export default function App() {
                     <div className="flex items-center justify-between bg-white px-4 md:px-5 py-3 border border-slate-200/80 rounded-xl shadow-xs gap-4">
                       <div className="flex items-center gap-3 text-xs select-none">
                         <button
-                          onClick={() => handleSelectProject(null)}
-                          className="flex items-center gap-1.5 font-bold text-slate-500 hover:text-blue-600 transition-colors bg-slate-50 hover:bg-slate-100 py-1.5 px-3 rounded-lg border border-slate-150 active:scale-95"
+                          onClick={() => {
+                            if (activeStepKey && activeStepKey !== 'overview') {
+                              handleSelectStep('overview', 'overview');
+                            } else {
+                              handleSelectProject(null);
+                            }
+                          }}
+                          className="flex items-center gap-1.5 font-bold text-slate-500 hover:text-blue-600 transition-colors bg-slate-50 hover:bg-slate-100 py-1.5 px-3 rounded-lg border border-slate-150 active:scale-95 cursor-pointer"
                         >
                           <ChevronLeft className="w-4 h-4" />
                           <span>Quay lại</span>
                         </button>
-                        <div className="h-4 w-px bg-slate-200 mx-1 hidden sm:block" />
-                        <div className="hidden sm:flex items-center gap-2 text-slate-400 font-bold">
-                          <span>Dự án</span>
-                          <span className="text-slate-300 font-normal">&gt;</span>
-                          <span className="font-extrabold text-slate-700 line-clamp-1">{selectedProject.name}</span>
-                        </div>
+                        {activeStepKey && activeStepKey !== 'overview' && (
+                          <>
+                            <div className="h-4 w-px bg-slate-200 mx-1 hidden sm:block" />
+                            <div className="hidden sm:flex items-center gap-2 text-slate-400 font-bold">
+                              <span className="font-extrabold text-slate-700 inline-block truncate max-w-[150px] sm:max-w-[300px] md:max-w-[450px] lg:max-w-[650px] py-0.5 align-middle">
+                                {selectedProject.name}
+                              </span>
+                            </div>
+                          </>
+                        )}
                       </div>
                       
-                      <span className="sm:hidden font-bold text-xs text-slate-800 line-clamp-1">{selectedProject.name}</span>
+                      {activeStepKey && activeStepKey !== 'overview' && (
+                        <span className="sm:hidden font-bold text-xs text-slate-800 inline-block truncate max-w-[120px] py-0.5 align-middle">
+                          {selectedProject.name}
+                        </span>
+                      )}
                     </div>
 
                     <ProjectMainView 
