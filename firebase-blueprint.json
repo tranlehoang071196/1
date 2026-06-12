@@ -1,0 +1,84 @@
+{
+  "entities": {
+    "Project": {
+      "title": "Project",
+      "description": "A land acquisition and compensation project (GPMB).",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the project"
+        },
+        "description": {
+          "type": "string",
+          "description": "Short description of the project"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["active", "completed", "archived"],
+          "description": "Current status of the project"
+        },
+        "steps": {
+          "type": "object",
+          "description": "Mapping of step IDs to their current status/data",
+          "properties": {
+            "landmarks_handover": { "type": "string" },
+            "acquisition_plan": { "type": "string" },
+            "deployment_meeting": { "type": "string" },
+            "notice_request_sent": { "type": "string" },
+            "notice_issued": { "type": "string" },
+            "inventory_agri_total": { "type": "string" },
+            "inventory_agri_done": { "type": "string" },
+            "inventory_resident_total": { "type": "string" },
+            "inventory_resident_done": { "type": "string" },
+            "compensation_plan_listed": { "type": "string" },
+            "appraisal_submitted": { "type": "string" },
+            "appraisal_approved": { "type": "string" },
+            "payment_made": { "type": "string" },
+            "links": {
+              "type": "object",
+              "properties": {
+                "hscv": { "type": "string" },
+                "notice_vb": { "type": "string" }
+              }
+            }
+          }
+        },
+        "ownerId": {
+          "type": "string",
+          "description": "UID of the user who created the project"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["name", "status", "ownerId", "createdAt", "updatedAt"]
+    },
+    "authorized_emails": {
+      "title": "Authorized Email",
+      "description": "Whitelist of emails allowed to access the application.",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "editor", "viewer"] },
+        "addedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["email", "role"]
+    }
+  },
+  "firestore": {
+    "projects": {
+      "schema": "Project",
+      "description": "Collection of land acquisition projects"
+    },
+    "authorized_emails": {
+      "schema": "authorized_emails",
+      "description": "Whitelist of authorized users"
+    }
+  }
+}

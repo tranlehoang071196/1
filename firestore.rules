@@ -1,0 +1,144 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function userRef() {
+      return /databases/$(database)/documents/authorized_emails/$(request.auth.token.get('email', '').lower());
+    }
+
+    function userData() {
+      return get(userRef()).data;
+    }
+
+    function isMasterAdminEmail(email) {
+      return email.lower() in ['kingofhero241@gmail.com', 'tranlehoang.071196@gmail.com'];
+    }
+
+    function userExists() {
+      return isSignedIn() && (
+        isMasterAdminEmail(request.auth.token.get('email', '')) ||
+        exists(userRef())
+      );
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        isMasterAdminEmail(request.auth.token.get('email', '')) || (
+          exists(userRef()) && 
+          userData().role == "admin" && 
+          userData().get('status', 'approved') == "approved"
+        )
+      );
+    }
+
+    function isApprovedUser() {
+      return isSignedIn() && (
+        isMasterAdminEmail(request.auth.token.get('email', '')) || (
+          exists(userRef()) && 
+          userData().get('status', 'approved') == "approved"
+        )
+      );
+    }
+
+    function isProjectEditor(projectId) {
+      return isApprovedUser() && 
+        userExists() &&
+        (userData().role == "editor" || userData().role == "admin") &&
+        (request.auth.token.get('email', '').lower() in 
+         get(/databases/$(database)/documents/projects/$(projectId)).data.get('authorizedEmails', [])
+         || request.auth.uid == get(/databases/$(database)/documents/projects/$(projectId)).data.get('ownerId', ''));
+    }
+
+    function isValidProject(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() <= 200
+        && (data.description == null || (data.description is string && data.description.size() <= 1000))
+        && data.status in ['active', 'completed', 'archived']
+        && data.ownerId is string
+        && data.steps is map
+        && (!('authorizedEmails' in data) || data.authorizedEmails is list)
+        && (!('projectType' in data) || data.projectType in ['agri', 'resident', 'both'])
+        && (!('disabledCategories' in data) || data.disabledCategories is list)
+        && (!('customSteps' in data) || data.customSteps is list)
+        && (!('inventoryIssues' in data) || data.inventoryIssues is list)
+        && (!('disabledSteps' in data) || data.disabledSteps is list)
+        && (!('stepsOrder' in data) || data.stepsOrder is map)
+        && (!('investor' in data) || data.investor == null || data.investor is string)
+        && (!('location' in data) || data.location == null || data.location is string)
+        && (!('deadline' in data) || data.deadline == null || data.deadline is string)
+        && (!('activities' in data) || data.activities is list);
+    }
+
+    function isDataUpdate() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+        .hasOnly([
+          'name',
+          'description',
+          'status',
+          'projectType',
+          'disabledCategories',
+          'disabledSteps',
+          'updatedAt',
+          'deadline',
+          'inventoryIssues',
+          'steps',
+          'customSteps',
+          'stepsOrder',
+          'location',
+          'investor',
+          'activities'
+        ]);
+    }
+
+    match /projects/{projectId} {
+      allow read: if isApprovedUser();
+      allow create: if isAdmin() && isValidProject(request.resource.data);
+      allow update: if (isAdmin() && isValidProject(request.resource.data))
+        || (isProjectEditor(projectId) && isValidProject(request.resource.data)
+            && isDataUpdate()
+            && request.resource.data.authorizedEmails == resource.data.authorizedEmails
+            && request.resource.data.ownerId == resource.data.ownerId);
+      allow delete: if isAdmin();
+
+      match /obstacles/{obstacleId} {
+        allow read: if isApprovedUser();
+        allow create, update, delete: if isAdmin() || isProjectEditor(projectId);
+      }
+
+      match /activities/{activityId} {
+        allow read: if isApprovedUser();
+        allow create: if isApprovedUser();
+      }
+    }
+
+    match /{path=**}/activities/{activityId} {
+      allow read: if isApprovedUser();
+      allow create: if isApprovedUser();
+    }
+
+    match /authorized_emails/{email} {
+      allow get: if isSignedIn() && (
+        isMasterAdminEmail(request.auth.token.get('email', '')) ||
+        request.auth.token.get('email', '').lower() == email.lower() ||
+        isAdmin()
+      );
+      allow list: if isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /pending_users/{email} {
+      allow read: if isAdmin() || 
+        (isSignedIn() && request.auth.token.get('email', '').lower() == email.lower());
+      allow create: if isSignedIn() && 
+        request.auth.token.get('email', '').lower() == email.lower();
+      allow update, delete: if isAdmin();
+    }
+  }
+}

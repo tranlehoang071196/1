@@ -1,0 +1,8 @@
+{
+  "name": "Project Tracker Pro",
+  "description": "Ứng dụng theo dõi tiến độ dự án GPMB và bồi thường chuyên nghiệp với giao diện hiện đại.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
