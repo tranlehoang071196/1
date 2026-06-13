@@ -5,6 +5,30 @@ import { cn } from '../lib/utils';
 import { Project } from '../types';
 import { formatRelative } from '../utils/dateUtils';
 
+const safeToMillis = (ts: any): number => {
+  if (!ts) return 0;
+  if (typeof ts.toMillis === 'function') {
+    return ts.toMillis();
+  }
+  if (typeof ts.toDate === 'function') {
+    return ts.toDate().getTime();
+  }
+  if (ts instanceof Date) {
+    return ts.getTime();
+  }
+  if (typeof ts === 'number') {
+    return ts;
+  }
+  if (typeof ts === 'string') {
+    const parsed = Date.parse(ts);
+    return isNaN(parsed) ? 0 : parsed;
+  }
+  if (ts.seconds !== undefined) {
+    return ts.seconds * 1000 + (ts.nanoseconds || 0) / 1000000;
+  }
+  return 0;
+};
+
 interface SidebarProps {
   projects: Project[];
   selectedProject: Project | null;
@@ -50,8 +74,8 @@ export const Sidebar = ({
       if (sortBy === 'name') {
         return sortOrder === 'asc' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
       } else {
-        const timeA = a.createdAt?.toMillis?.() || 0;
-        const timeB = b.createdAt?.toMillis?.() || 0;
+        const timeA = safeToMillis(a.createdAt);
+        const timeB = safeToMillis(b.createdAt);
         return sortOrder === 'asc' ? timeA - timeB : timeB - timeA;
       }
     });

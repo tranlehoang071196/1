@@ -1,5 +1,5 @@
-import React from "react";
-import { Trash2, Layers, X } from "lucide-react";
+import React, { useState } from "react";
+import { Trash2, Layers, X, Plus } from "lucide-react";
 import { Project } from "../../types";
 import { CustomDatePicker, NumberInput, CurrencyInput, EditableInput } from "../ui-primitives";
 import { updateStepStatus } from "../../lib/projectService";
@@ -22,6 +22,7 @@ export const AppraisalSubmitStep: React.FC<AppraisalSubmitStepProps> = ({
 }) => {
   const planDraftData = stepData as any;
   const roundsList = planDraftData?.rounds || [];
+  const [activeRoundId, setActiveRoundId] = useState<string | null>(null);
 
   const invStep = project.steps?.inventory as any;
   const invRoundsRaw = invStep?.rounds || [];
@@ -42,27 +43,27 @@ export const AppraisalSubmitStep: React.FC<AppraisalSubmitStepProps> = ({
   );
 
   const invDoneAgriPlots = invAgriRounds.reduce(
-    (acc: number, r: any) => acc + (r.donePlots || 0),
+    (acc: number, r: any) => Number(acc) + Number(r.donePlots || 0),
     0,
   );
   const invDoneAgriHouseholds = invAgriRounds.reduce(
-    (acc: number, r: any) => acc + (r.doneHouseholds || 0),
+    (acc: number, r: any) => Number(acc) + Number(r.doneHouseholds || 0),
     0,
   );
   const invDoneNonAgriPlots = invNonAgriRounds.reduce(
-    (acc: number, r: any) => acc + (r.donePlots || 0),
+    (acc: number, r: any) => Number(acc) + Number(r.donePlots || 0),
     0,
   );
   const invDoneNonAgriHouseholds = invNonAgriRounds.reduce(
-    (acc: number, r: any) => acc + (r.doneHouseholds || 0),
+    (acc: number, r: any) => Number(acc) + Number(r.doneHouseholds || 0),
     0,
   );
   const invDoneOrgs = invOrgRounds.reduce(
-    (acc: number, r: any) => acc + (r.doneOrgs || 0),
+    (acc: number, r: any) => Number(acc) + Number(r.doneOrgs || 0),
     0,
   );
   const invDoneAssetHouseholds = invAssetRounds.reduce(
-    (acc: number, r: any) => acc + (r.doneHouseholds || 0),
+    (acc: number, r: any) => Number(acc) + Number(r.doneHouseholds || 0),
     0,
   );
 
@@ -96,7 +97,7 @@ export const AppraisalSubmitStep: React.FC<AppraisalSubmitStepProps> = ({
                 : item.id === "structures"
                   ? r.doneStructures
                   : 0;
-        return acc + (Number(rVal) || 0);
+        return Number(acc) + Number(Number(rVal) || 0);
       },
       0,
     );
@@ -146,11 +147,11 @@ export const AppraisalSubmitStep: React.FC<AppraisalSubmitStepProps> = ({
   const getOrgsVal = (r: any) => (r.orgs ?? (r.targetType === 'org' ? r.doneOrgs : 0)) || 0;
   const getAssetHH = (r: any) => (r.assetHouseholds ?? (r.targetType === 'assets' ? r.doneHouseholds : 0)) || 0;
 
-  const doneAgriPlots = roundsList.reduce((acc: number, r: any) => acc + getAgriPlots(r), 0);
-  const doneAgriHouseholds = roundsList.reduce((acc: number, r: any) => acc + getAgriHH(r), 0);
-  const doneNonAgriPlots = roundsList.reduce((acc: number, r: any) => acc + getNonAgriPlots(r), 0);
-  const doneNonAgriHouseholds = roundsList.reduce((acc: number, r: any) => acc + getNonAgriHH(r), 0);
-  const doneOrgs = roundsList.reduce((acc: number, r: any) => acc + getOrgsVal(r), 0);
+  const doneAgriPlots = roundsList.reduce((acc: number, r: any) => Number(acc) + Number(getAgriPlots(r)), 0);
+  const doneAgriHouseholds = roundsList.reduce((acc: number, r: any) => Number(acc) + Number(getAgriHH(r)), 0);
+  const doneNonAgriPlots = roundsList.reduce((acc: number, r: any) => Number(acc) + Number(getNonAgriPlots(r)), 0);
+  const doneNonAgriHouseholds = roundsList.reduce((acc: number, r: any) => Number(acc) + Number(getNonAgriHH(r)), 0);
+  const doneOrgs = roundsList.reduce((acc: number, r: any) => Number(acc) + Number(getOrgsVal(r)), 0);
 
   // Dynamic asset types done counts
   const assetDoneParts: string[] = [];
@@ -160,7 +161,7 @@ export const AppraisalSubmitStep: React.FC<AppraisalSubmitStepProps> = ({
       const legacyAssetsVal = r.targetType === 'assets' ? 
         (item.id === "graves" ? r.doneGraves : item.id === "assets" ? r.doneAssets : item.id === "structures" ? r.doneStructures : 0) : 0;
       const rVal = r[`asset_${item.id}`] ?? (r[item.id] !== undefined ? r[item.id] : legacyAssetsVal);
-      return acc + (Number(rVal) || 0);
+      return Number(acc) + Number(Number(rVal) || 0);
     }, 0);
 
     const invCountVal = invDoneAssetsMap[item.id] || 0;
@@ -171,7 +172,7 @@ export const AppraisalSubmitStep: React.FC<AppraisalSubmitStepProps> = ({
     }
   });
 
-  const doneAssetHouseholds = roundsList.reduce((acc: number, r: any) => acc + getAssetHH(r), 0);
+  const doneAssetHouseholds = roundsList.reduce((acc: number, r: any) => Number(acc) + Number(getAssetHH(r)), 0);
 
   let assetProgressText = "";
   if (assetDoneParts.length > 0) {
@@ -185,13 +186,13 @@ export const AppraisalSubmitStep: React.FC<AppraisalSubmitStepProps> = ({
 
   // Calculate total compensation amount across all appraisal submit rounds
   const totalAmount = roundsList.reduce(
-    (acc: number, r: any) => acc + (r.amount || 0),
+    (acc: number, r: any) => Number(acc) + Number(r.amount || 0),
     0,
   );
 
   // Calculate total cost across all appraisal submit rounds
   const totalCost = roundsList.reduce(
-    (acc: number, r: any) => acc + (r.cost || 0),
+    (acc: number, r: any) => Number(acc) + Number(r.cost || 0),
     0,
   );
 
@@ -209,29 +210,34 @@ export const AppraisalSubmitStep: React.FC<AppraisalSubmitStepProps> = ({
     };
   };
 
-  return (
-    <div className="flex flex-col gap-4 mt-2 w-full">
-      {/* Progress / Summary Dashboard */}
-      <div className="border border-slate-200 rounded-xl bg-slate-50/50 p-4 space-y-3">
-        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-sans">
-          Tiến độ trình phương án thẩm định
-        </span>
+  const selectedRoundIndex = roundsList.findIndex((r: any) => r.id === activeRoundId);
+  const currentActiveId = activeRoundId || roundsList[0]?.id;
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-1.5 pl-2 border-l-2 border-blue-400/80">
-            <span className="text-[9.5px] font-black text-slate-400 uppercase block select-none">
-              Đã trình phương án:
+  return (
+    <div className="flex flex-col gap-5 mt-2 w-full">
+      {/* Progress / Summary Dashboard */}
+      <div className="border border-slate-200/80 rounded-2xl bg-white overflow-hidden shadow-xs hover:shadow-sm transition-all duration-300">
+        <div className="px-5 py-4 bg-gradient-to-r from-slate-50 to-slate-100/50 border-b border-slate-100">
+          <span className="text-[12px] font-black text-slate-705 uppercase tracking-wider block font-sans">
+            📊 Tổng quan tiến độ trình thẩm định phương án bồi thường
+          </span>
+        </div>
+
+        <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="space-y-2 pl-3 border-l-2 border-indigo-500 bg-indigo-50/5 p-3 rounded-r-xl">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2 select-none">
+              ĐÃ TRÌNH THẨM ĐỊNH THEO CHỈ TIÊU:
             </span>
 
             {hasInvAgri &&
               (doneAgriPlots > 0 || doneAgriHouseholds > 0 ? (
-                <div className="text-[11.5px] text-slate-755 font-medium flex items-center gap-1.5 flex-wrap font-sans">
+                <div className="text-[12px] text-slate-755 font-medium flex items-center gap-2 flex-wrap font-sans">
                   <span>
                     🌾{" "}
                     <span className="font-semibold text-slate-500">
                       Đất nông nghiệp:
                     </span>{" "}
-                    <strong className="text-blue-700">
+                    <strong className="text-indigo-700">
                       {formatCount(doneAgriPlots)}/
                       {formatCount(invDoneAgriPlots)} thửa
                       (thuộc {formatCount(doneAgriHouseholds)}
@@ -240,7 +246,7 @@ export const AppraisalSubmitStep: React.FC<AppraisalSubmitStepProps> = ({
                     </strong>
                   </span>
                   {invDoneAgriHouseholds > 0 && (
-                    <span className="text-blue-600 font-bold text-[10px] bg-blue-50/80 px-1 py-0.5 rounded shadow-sm border border-blue-100/50">
+                    <span className="text-indigo-650 font-bold text-[10px] bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100">
                       {Math.round(
                         (doneAgriHouseholds /
                           invDoneAgriHouseholds) *
@@ -251,7 +257,7 @@ export const AppraisalSubmitStep: React.FC<AppraisalSubmitStepProps> = ({
                   )}
                 </div>
               ) : (
-                <div className="text-[11.5px] text-slate-400 font-medium font-sans">
+                <div className="text-[12px] text-slate-400 font-medium font-sans">
                   🌾 Chưa lập phương án đất nông nghiệp (Tổng:{" "}
                   {formatCount(invDoneAgriPlots)} thửa (thuộc{" "}
                   {formatCount(invDoneAgriHouseholds)} hộ))
@@ -261,13 +267,13 @@ export const AppraisalSubmitStep: React.FC<AppraisalSubmitStepProps> = ({
             {hasInvNonAgri &&
               (doneNonAgriPlots > 0 ||
               doneNonAgriHouseholds > 0 ? (
-                <div className="text-[11.5px] text-slate-755 font-medium flex items-center gap-1.5 flex-wrap font-sans">
+                <div className="text-[12px] text-slate-755 font-medium flex items-center gap-2 flex-wrap font-sans">
                   <span>
                     🏠{" "}
                     <span className="font-semibold text-slate-500">
                       Đất phi nông nghiệp:
                     </span>{" "}
-                    <strong className="text-blue-700">
+                    <strong className="text-indigo-700">
                       {formatCount(doneNonAgriPlots)}/
                       {formatCount(invDoneNonAgriPlots)} thửa
                       (thuộc {formatCount(doneNonAgriHouseholds)}
@@ -276,7 +282,7 @@ export const AppraisalSubmitStep: React.FC<AppraisalSubmitStepProps> = ({
                     </strong>
                   </span>
                   {invDoneNonAgriHouseholds > 0 && (
-                    <span className="text-blue-600 font-bold text-[10px] bg-blue-50/80 px-1 py-0.5 rounded shadow-sm border border-blue-100/50">
+                    <span className="text-indigo-650 font-bold text-[10px] bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100">
                       {Math.round(
                         (doneNonAgriHouseholds /
                           invDoneNonAgriHouseholds) *
@@ -287,7 +293,7 @@ export const AppraisalSubmitStep: React.FC<AppraisalSubmitStepProps> = ({
                   )}
                 </div>
               ) : (
-                <div className="text-[11.5px] text-slate-400 font-medium font-sans">
+                <div className="text-[12px] text-slate-400 font-medium font-sans">
                   🏠 Chưa lập phương án đất phi nông nghiệp (Tổng:{" "}
                   {formatCount(invDoneNonAgriPlots)} thửa
                   (thuộc{" "}
@@ -297,19 +303,19 @@ export const AppraisalSubmitStep: React.FC<AppraisalSubmitStepProps> = ({
 
             {hasInvOrg &&
               (doneOrgs > 0 ? (
-                <div className="text-[11.5px] text-slate-755 font-medium flex items-center gap-1.5 flex-wrap font-sans">
+                <div className="text-[12px] text-slate-755 font-medium flex items-center gap-2 flex-wrap font-sans">
                   <span>
                     🏢{" "}
                     <span className="font-semibold text-slate-500">
                       Tổ chức:
                     </span>{" "}
-                    <strong className="text-blue-700">
+                    <strong className="text-indigo-700">
                       {formatCount(doneOrgs)}/
                       {formatCount(invDoneOrgs)} tổ chức
                     </strong>
                   </span>
                   {invDoneOrgs > 0 && (
-                    <span className="text-blue-600 font-bold text-[10px] bg-blue-50/80 px-1 py-0.5 rounded shadow-sm border border-blue-100/50">
+                    <span className="text-indigo-650 font-bold text-[10px] bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100">
                       {Math.round(
                         (doneOrgs / invDoneOrgs) * 100,
                       )}
@@ -318,7 +324,7 @@ export const AppraisalSubmitStep: React.FC<AppraisalSubmitStepProps> = ({
                   )}
                 </div>
               ) : (
-                <div className="text-[11.5px] text-slate-400 font-medium font-sans">
+                <div className="text-[12px] text-slate-400 font-medium font-sans">
                   🏢 Chưa lập phương án tổ chức (Tổng:{" "}
                   {formatCount(invDoneOrgs)} tổ chức)
                 </div>
@@ -326,30 +332,30 @@ export const AppraisalSubmitStep: React.FC<AppraisalSubmitStepProps> = ({
 
             {hasInvAsset &&
               (assetProgressText ? (
-                <div className="text-[11.5px] text-slate-755 font-medium flex items-center gap-1.5 flex-wrap font-sans">
+                <div className="text-[12px] text-slate-755 font-medium flex items-center gap-2 flex-wrap font-sans">
                   <span>
                     📦{" "}
                     <span className="font-semibold text-slate-500">
                       Tài sản khác:
                     </span>{" "}
-                    <strong className="text-blue-700">
+                    <strong className="text-indigo-700">
                       {assetProgressText}
                     </strong>
                   </span>
                   {invDoneAssetHouseholds > 0 &&
                     doneAssetHouseholds > 0 && (
-                      <span className="text-blue-600 font-bold text-[10px] bg-blue-50/80 px-1 py-0.5 rounded shadow-sm border border-blue-100/50">
+                      <span className="text-indigo-650 font-bold text-[10px] bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100">
                         {Math.round(
                           (doneAssetHouseholds /
                             invDoneAssetHouseholds) *
-                            105,
+                            100,
                         )}
                         %
                       </span>
                     )}
                 </div>
               ) : (
-                <div className="text-[11.5px] text-slate-400 font-medium font-sans">
+                <div className="text-[12px] text-slate-400 font-medium font-sans">
                   📦 Chưa lập phương án tài sản (Tổng:{" "}
                   {formatCount(invDoneAssetHouseholds)} hộ)
                 </div>
@@ -359,33 +365,35 @@ export const AppraisalSubmitStep: React.FC<AppraisalSubmitStepProps> = ({
               !hasInvNonAgri &&
               !hasInvOrg &&
               !hasInvAsset && (
-                <div className="text-[11.5px] text-slate-400 italic font-sans animate-pulse">
+                <div className="text-[12px] text-slate-400 italic font-sans animate-pulse">
                   Chưa ghi nhận đối tượng đã kiểm đếm để lập đợt
                 </div>
               )}
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pb-1">
-            <div className="bg-emerald-50/50 rounded-xl p-3 border border-emerald-100 flex flex-col justify-between">
-              <span className="text-[10px] font-bold text-emerald-650 uppercase tracking-wide">
-                Tổng số tiền BT, HT cả các đợt
+          <div className="grid grid-cols-2 gap-4 pb-1">
+            {/* Box 1 */}
+            <div className="bg-gradient-to-br from-emerald-500/10 via-emerald-50/10 to-teal-500/5 rounded-2xl p-4 border border-emerald-150 shadow-3xs flex flex-col justify-between">
+              <span className="text-[9px] font-black text-emerald-650 uppercase tracking-wider select-none leading-tight">
+                💰 Kinh phí bồi thường
               </span>
-              <div className="mt-2 text-base font-black text-emerald-700 flex items-baseline font-mono">
+              <div className="mt-2 text-[17px] font-black text-emerald-700 flex items-baseline font-mono tracking-tight shrink-0">
                 {totalAmount.toLocaleString("vi-VN")}
-                <span className="text-xs font-semibold text-emerald-500 ml-1">
-                  đ
+                <span className="text-[9px] font-semibold text-emerald-500 ml-1">
+                  VND
                 </span>
               </div>
             </div>
 
-            <div className="bg-blue-50/50 rounded-xl p-3 border border-blue-100 flex flex-col justify-between">
-              <span className="text-[10px] font-bold text-blue-650 uppercase tracking-wide">
-                Tổng chi phí thực hiện cả các đợt
+            {/* Box 2 */}
+            <div className="bg-gradient-to-br from-blue-500/10 via-blue-50/10 to-indigo-55/5 rounded-2xl p-4 border border-blue-150 shadow-3xs flex flex-col justify-between">
+              <span className="text-[9px] font-black text-blue-650 uppercase tracking-wider select-none leading-tight">
+                📊 Chi phí thẩm định (2%)
               </span>
-              <div className="mt-2 text-base font-black text-blue-700 flex items-baseline font-mono">
+              <div className="mt-2 text-[17px] font-black text-blue-700 flex items-baseline font-mono tracking-tight shrink-0">
                 {totalCost.toLocaleString("vi-VN")}
-                <span className="text-xs font-semibold text-blue-500 ml-1">
-                  đ
+                <span className="text-[9px] font-semibold text-blue-500 ml-1">
+                  VND
                 </span>
               </div>
             </div>
@@ -394,20 +402,20 @@ export const AppraisalSubmitStep: React.FC<AppraisalSubmitStepProps> = ({
       </div>
 
       {/* List of Rounds */}
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-            <Layers className="w-3.5 h-3.5" />
-            Các đợt thực hiện
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <span className="text-[11px] font-black text-slate-505 uppercase tracking-widest flex items-center gap-2 select-none">
+            <Layers className="w-4 h-4 text-slate-400" /> Các đợt trình thẩm định phương án thực tế
           </span>
           {canEdit && (
             <button
               onClick={() => {
                 const current = planDraftData?.rounds || [];
+                const newRoundId = Math.random()
+                  .toString(36)
+                  .substring(2, 11);
                 const item = {
-                  id: Math.random()
-                    .toString(36)
-                    .substring(2, 11),
+                  id: newRoundId,
                   targetType: defaultTargetType,
                   date: "",
                   donePlots: 0,
@@ -427,39 +435,74 @@ export const AppraisalSubmitStep: React.FC<AppraisalSubmitStepProps> = ({
                   ...planDraftData,
                   rounds: [...current, item],
                 });
+                setActiveRoundId(newRoundId);
               }}
-              className="text-[10px] font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg border border-blue-200 transition-colors cursor-pointer"
+              className="text-[11px] font-bold text-blue-600 bg-blue-50/85 hover:bg-blue-100/95 px-3.5 py-1.5 rounded-xl border border-blue-200/60 shadow-2xs hover:shadow-xs transition-all duration-250 cursor-pointer select-none flex items-center gap-1"
             >
-              + Thêm đợt
+              <Plus className="w-3.5 h-3.5" /> Thêm đợt trình thẩm định
             </button>
           )}
         </div>
 
-        <div className="space-y-3">
-          {roundsList.map((round: any, idx: number) => {
-            const otherRounds = roundsList.filter((_, rIdx: number) => rIdx !== idx);
+        {/* Premium Pill Container for switching between Submitted Appraisal Rounds */}
+        {roundsList.length > 0 && (
+          <div className="p-1 rounded-2xl bg-slate-100/80 border border-slate-200/50 flex flex-wrap gap-1.5 mb-2 shadow-2xs">
+            {roundsList.map((r: any, rIdx: number) => {
+              const active = r.id === currentActiveId;
+              return (
+                <button
+                  key={r.id || rIdx}
+                  onClick={() => setActiveRoundId(r.id)}
+                  type="button"
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[11px] font-bold tracking-wide transition-all duration-250 pointer cursor-pointer select-none ${
+                    active
+                      ? "bg-white text-blue-600 shadow-sm border border-slate-200/60 ring-1 ring-slate-100"
+                      : "bg-transparent border border-transparent text-slate-500 hover:text-slate-800 hover:bg-white/50"
+                  }`}
+                >
+                  <span className={`relative flex h-2 w-2 rounded-full ${active ? "bg-blue-500" : "bg-slate-300"}`}>
+                    {active && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-60"></span>}
+                  </span>
+                  <span>ĐỢT {rIdx + 1}</span>
+                  {r.date && (
+                    <span className={`text-[9.5px] font-medium font-mono ${active ? "text-blue-500" : "text-slate-400"}`}>
+                      ({r.date})
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )}
 
-            const sumOtherAgriPlots = otherRounds.reduce((acc: number, r: any) => acc + getAgriPlots(r), 0);
-            const sumOtherAgriHH = otherRounds.reduce((acc: number, r: any) => acc + getAgriHH(r), 0);
-            const maxAgriPlots = Math.max(0, invDoneAgriPlots - sumOtherAgriPlots);
-            const maxAgriHH = Math.max(0, invDoneAgriHouseholds - sumOtherAgriHH);
+        <div className="space-y-4 animate-in fade-in duration-300">
+          {roundsList
+            .filter((round: any) => round.id === currentActiveId)
+            .map((round: any) => {
+              const idx = roundsList.indexOf(round);
+              const otherRounds = roundsList.filter((_, rIdx: number) => rIdx !== idx);
 
-            const sumOtherNonAgriPlots = otherRounds.reduce((acc: number, r: any) => acc + getNonAgriPlots(r), 0);
-            const sumOtherNonAgriHH = otherRounds.reduce((acc: number, r: any) => acc + getNonAgriHH(r), 0);
-            const maxNonAgriPlots = Math.max(0, invDoneNonAgriPlots - sumOtherNonAgriPlots);
-            const maxNonAgriHH = Math.max(0, invDoneNonAgriHouseholds - sumOtherNonAgriHH);
+              const sumOtherAgriPlots = otherRounds.reduce((acc: number, r: any) => Number(acc) + Number(getAgriPlots(r)), 0);
+              const sumOtherAgriHH = otherRounds.reduce((acc: number, r: any) => Number(acc) + Number(getAgriHH(r)), 0);
+              const maxAgriPlots = Math.max(0, invDoneAgriPlots - sumOtherAgriPlots);
+              const maxAgriHH = Math.max(0, invDoneAgriHouseholds - sumOtherAgriHH);
 
-            const sumOtherOrgs = otherRounds.reduce((acc: number, r: any) => acc + getOrgsVal(r), 0);
-            const maxOrgs = Math.max(0, invDoneOrgs - sumOtherOrgs);
+              const sumOtherNonAgriPlots = otherRounds.reduce((acc: number, r: any) => Number(acc) + Number(getNonAgriPlots(r)), 0);
+              const sumOtherNonAgriHH = otherRounds.reduce((acc: number, r: any) => Number(acc) + Number(getNonAgriHH(r)), 0);
+              const maxNonAgriPlots = Math.max(0, invDoneNonAgriPlots - sumOtherNonAgriPlots);
+              const maxNonAgriHH = Math.max(0, invDoneNonAgriHouseholds - sumOtherNonAgriHH);
 
-            const sumOtherAssetHH = otherRounds.reduce((acc: number, r: any) => acc + getAssetHH(r), 0);
-            const maxAssetHH = Math.max(0, invDoneAssetHouseholds - sumOtherAssetHH);
+              const sumOtherOrgs = otherRounds.reduce((acc: number, r: any) => Number(acc) + Number(getOrgsVal(r)), 0);
+              const maxOrgs = Math.max(0, invDoneOrgs - sumOtherOrgs);
 
-            return (
-              <div
-                key={round.id || idx}
-                className="bg-slate-50 p-4.5 rounded-xl border border-slate-200 shadow-xs flex flex-col gap-3"
-              >
+              const sumOtherAssetHH = otherRounds.reduce((acc: number, r: any) => Number(acc) + Number(getAssetHH(r)), 0);
+              const maxAssetHH = Math.max(0, invDoneAssetHouseholds - sumOtherAssetHH);
+
+              return (
+                <div
+                  key={round.id || idx}
+                  className="bg-white p-5 rounded-2xl border border-slate-200/80 border-l-4 border-l-blue-500 shadow-xs flex flex-col gap-4 transition-all hover:shadow-sm"
+                >
                 {/* Header of Round */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-slate-100 font-sans">
                   <div className="flex flex-wrap items-center gap-2">
@@ -520,7 +563,7 @@ export const AppraisalSubmitStep: React.FC<AppraisalSubmitStepProps> = ({
                 </div>
 
                 {/* Inputs list based on available inventory */}
-                <div className="flex flex-col gap-y-3 text-[10.5px] text-slate-600 bg-white p-3 rounded-lg border border-slate-100 items-start">
+                <div className="w-full space-y-3 bg-slate-50/75 p-3.5 rounded-2xl border border-slate-200/65 shadow-3xs">
                   {(() => {
                     const activeTypes = (() => {
                       if (Array.isArray(round.activeTypes)) {
@@ -549,7 +592,7 @@ export const AppraisalSubmitStep: React.FC<AppraisalSubmitStepProps> = ({
                         {activeTypes.map((typeVal, typeIdx) => (
                           <div
                             key={`${typeVal}-${typeIdx}`}
-                            className="flex flex-wrap items-center gap-3 bg-slate-50/50 p-2 rounded border border-slate-100 w-full xl:w-auto relative group"
+                            className="flex flex-wrap items-center gap-3.5 bg-white p-3 rounded-2xl border border-slate-200 hover:border-slate-300 transition-all duration-200 shadow-3xs w-full relative group"
                           >
                             <div className="flex items-center gap-1.5 min-w-[170px]">
                               <select
@@ -587,7 +630,7 @@ export const AppraisalSubmitStep: React.FC<AppraisalSubmitStepProps> = ({
                                     rounds: newRounds,
                                   });
                                 }}
-                                className="bg-white border border-slate-200 rounded px-2 py-1 text-[10px] font-bold text-slate-700 outline-none focus:border-blue-500 uppercase tracking-tight min-w-[150px] font-sans h-7"
+                                className="bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-700 outline-none focus:border-blue-500 hover:bg-slate-100/50 uppercase tracking-tight min-w-[150px] font-sans h-8 cursor-pointer transition-all"
                               >
                                 {availableTypes.map((t) => (
                                   <option
@@ -605,12 +648,13 @@ export const AppraisalSubmitStep: React.FC<AppraisalSubmitStepProps> = ({
                             </div>
 
                             {typeVal === "agri" && (
-                              <div className="flex items-center gap-3">
+                              <div className="flex items-center gap-3.5">
                                 <div className="flex items-center gap-1.5">
                                   <NumberInput
-                                    className="w-16 h-7 text-center bg-white border border-slate-200 rounded px-1.5 py-0.5 text-[10px] font-bold text-slate-800 outline-none focus:border-blue-500 font-mono"
+                                    className="w-16 h-8 text-center bg-slate-50 border border-slate-200 hover:border-slate-300 focus:border-blue-500 rounded-xl px-1.5 py-0.5 text-xs font-bold text-slate-800 outline-none focus:ring-4 focus:ring-blue-500/10 transition-all font-mono shadow-3xs"
                                     placeholder="Thửa"
                                     value={getAgriPlots(round)}
+                                    tooltipText={`Còn lại ${maxAgriPlots} thửa`}
                                     onChange={(val) => {
                                       if (val > maxAgriPlots) {
                                         toast.warning(`Số thửa đất nông nghiệp trình thẩm định vượt quá số lượng đã kiểm đếm còn lại (${maxAgriPlots} thửa).`);
@@ -627,15 +671,16 @@ export const AppraisalSubmitStep: React.FC<AppraisalSubmitStepProps> = ({
                                     }}
                                     readOnly={!canEdit}
                                   />
-                                  <span className="text-[10px] text-slate-500 whitespace-nowrap -ml-0.5 font-sans">
+                                  <span className="text-[10px] text-slate-500 whitespace-nowrap font-bold">
                                     (số thửa)
                                   </span>
                                 </div>
                                 <div className="flex items-center gap-1.5">
                                   <NumberInput
-                                    className="w-16 h-7 text-center bg-white border border-slate-200 rounded px-1.5 py-0.5 text-[10px] font-bold text-slate-800 outline-none focus:border-blue-500 font-mono"
+                                    className="w-16 h-8 text-center bg-slate-50 border border-slate-200 hover:border-slate-300 focus:border-blue-500 rounded-xl px-1.5 py-0.5 text-xs font-bold text-slate-800 outline-none focus:ring-4 focus:ring-blue-500/10 transition-all font-mono shadow-3xs"
                                     placeholder="Hộ"
                                     value={getAgriHH(round)}
+                                    tooltipText={`Còn lại ${maxAgriHH} hộ`}
                                     onChange={(val) => {
                                       if (val > maxAgriHH) {
                                         toast.warning(`Số hộ đất nông nghiệp trình thẩm định vượt quá số lượng đã kiểm đếm còn lại (${maxAgriHH} hộ).`);
@@ -652,7 +697,7 @@ export const AppraisalSubmitStep: React.FC<AppraisalSubmitStepProps> = ({
                                     }}
                                     readOnly={!canEdit}
                                   />
-                                  <span className="text-[10px] text-slate-500 whitespace-nowrap -ml-0.5 font-sans">
+                                  <span className="text-[10px] text-slate-500 whitespace-nowrap font-bold">
                                     (số hộ)
                                   </span>
                                 </div>
@@ -660,12 +705,13 @@ export const AppraisalSubmitStep: React.FC<AppraisalSubmitStepProps> = ({
                             )}
 
                             {typeVal === "non_agri" && (
-                              <div className="flex items-center gap-3">
+                              <div className="flex items-center gap-3.5">
                                 <div className="flex items-center gap-1.5">
                                   <NumberInput
-                                    className="w-16 h-7 text-center bg-white border border-slate-200 rounded px-1.5 py-0.5 text-[10px] font-bold text-slate-800 outline-none focus:border-blue-500 font-mono"
+                                    className="w-16 h-8 text-center bg-slate-50 border border-slate-200 hover:border-slate-300 focus:border-blue-500 rounded-xl px-1.5 py-0.5 text-xs font-bold text-slate-800 outline-none focus:ring-4 focus:ring-blue-500/10 transition-all font-mono shadow-3xs"
                                     placeholder="Thửa"
                                     value={getNonAgriPlots(round)}
+                                    tooltipText={`Còn lại ${maxNonAgriPlots} thửa`}
                                     onChange={(val) => {
                                       if (val > maxNonAgriPlots) {
                                         toast.warning(`Số thửa đất phi nông nghiệp trình thẩm định vượt quá số lượng đã kiểm đếm còn lại (${maxNonAgriPlots} thửa).`);
@@ -685,15 +731,16 @@ export const AppraisalSubmitStep: React.FC<AppraisalSubmitStepProps> = ({
                                     }}
                                     readOnly={!canEdit}
                                   />
-                                  <span className="text-[10px] text-slate-500 whitespace-nowrap -ml-0.5 font-sans">
+                                  <span className="text-[10px] text-slate-500 whitespace-nowrap font-bold">
                                     (số thửa)
                                   </span>
                                 </div>
                                 <div className="flex items-center gap-1.5">
                                   <NumberInput
-                                    className="w-16 h-7 text-center bg-white border border-slate-200 rounded px-1.5 py-0.5 text-[10px] font-bold text-slate-800 outline-none focus:border-blue-500 font-mono"
+                                    className="w-16 h-8 text-center bg-slate-50 border border-slate-200 hover:border-slate-300 focus:border-blue-500 rounded-xl px-1.5 py-0.5 text-xs font-bold text-slate-800 outline-none focus:ring-4 focus:ring-blue-500/10 transition-all font-mono shadow-3xs"
                                     placeholder="Hộ"
                                     value={getNonAgriHH(round)}
+                                    tooltipText={`Còn lại ${maxNonAgriHH} hộ`}
                                     onChange={(val) => {
                                       if (val > maxNonAgriHH) {
                                         toast.warning(`Số hộ đất phi nông nghiệp trình thẩm định vượt quá số lượng đã kiểm đếm còn lại (${maxNonAgriHH} hộ).`);
@@ -710,7 +757,7 @@ export const AppraisalSubmitStep: React.FC<AppraisalSubmitStepProps> = ({
                                     }}
                                     readOnly={!canEdit}
                                   />
-                                  <span className="text-[10px] text-slate-500 whitespace-nowrap -ml-0.5 font-sans">
+                                  <span className="text-[10px] text-slate-500 whitespace-nowrap font-bold">
                                     (số hộ)
                                   </span>
                                 </div>
@@ -720,9 +767,10 @@ export const AppraisalSubmitStep: React.FC<AppraisalSubmitStepProps> = ({
                             {typeVal === "org" && (
                               <div className="flex items-center gap-1.5">
                                 <NumberInput
-                                  className="w-16 h-7 text-center bg-white border border-slate-200 rounded px-1.5 py-0.5 text-[10px] font-bold text-slate-800 outline-none focus:border-blue-500 font-mono"
+                                  className="w-16 h-8 text-center bg-slate-50 border border-slate-200 rounded-xl px-1.5 py-0.5 text-xs font-bold text-slate-800 outline-none focus:border-blue-500 hover:border-slate-300 focus:ring-4 focus:ring-blue-500/10 transition-all font-mono shadow-3xs"
                                   placeholder="TC"
                                   value={getOrgsVal(round)}
+                                  tooltipText={`Còn lại ${maxOrgs} tổ chức`}
                                   onChange={(val) => {
                                     if (val > maxOrgs) {
                                       toast.warning(`Số tổ chức trình thẩm định vượt quá số lượng đã kiểm đếm còn lại (${maxOrgs} tổ chức).`);
@@ -754,7 +802,7 @@ export const AppraisalSubmitStep: React.FC<AppraisalSubmitStepProps> = ({
                                     (acc: number, r: any) => {
                                       const lVal = r.targetType === 'assets' ? (item.id === "graves" ? r.doneGraves : item.id === "assets" ? r.doneAssets : item.id === "structures" ? r.doneStructures : 0) : 0;
                                       const rVal = r[`asset_${item.id}`] ?? (r[item.id] !== undefined ? r[item.id] : lVal);
-                                      return acc + (Number(rVal) || 0);
+                                      return Number(acc) + Number(Number(rVal) || 0);
                                     },
                                     0,
                                   );
@@ -770,8 +818,9 @@ export const AppraisalSubmitStep: React.FC<AppraisalSubmitStepProps> = ({
                                       className="flex items-center gap-1.5 font-sans"
                                     >
                                       <NumberInput
-                                        className="w-12 h-7 text-center bg-white border border-slate-200 rounded px-1 py-0.5 text-[10.5px] font-bold text-slate-800 outline-none focus:border-blue-500 font-mono"
+                                        className="w-14 h-8 text-center bg-slate-50 border border-slate-200 rounded-xl px-1.5 py-0.5 text-xs font-bold text-slate-800 outline-none focus:border-blue-500 hover:border-slate-300 focus:ring-4 focus:ring-blue-500/10 transition-all font-mono shadow-3xs"
                                         value={valInRound || 0}
+                                        tooltipText={`Còn lại ${maxAssetItem} ${item.label.toLowerCase()}`}
                                         onChange={(val) => {
                                           if (val > maxAssetItem) {
                                             toast.warning(`Số lượng ${item.label.toLowerCase()} trình thẩm định vượt quá số đã kiểm đếm còn lại (${maxAssetItem}).`);
@@ -808,9 +857,10 @@ export const AppraisalSubmitStep: React.FC<AppraisalSubmitStepProps> = ({
                                 })}
                                 <div className="flex items-center gap-1.5 font-sans">
                                   <NumberInput
-                                    className="w-12 h-7 text-center bg-white border border-slate-200 rounded px-1.5 py-0.5 text-[10.5px] font-bold text-slate-800 outline-none focus:border-blue-500 font-mono"
+                                    className="w-14 h-8 text-center bg-slate-50 border border-slate-200 rounded-xl px-1.5 py-0.5 text-xs font-bold text-slate-800 outline-none focus:border-blue-500 hover:border-slate-300 focus:ring-4 focus:ring-blue-500/10 transition-all font-mono shadow-3xs"
                                     placeholder="Hộ"
                                     value={getAssetHH(round)}
+                                    tooltipText={`Còn lại ${maxAssetHH} hộ`}
                                     onChange={(val) => {
                                       if (val > maxAssetHH) {
                                         toast.warning(`Số hộ ảnh hưởng tài sản khác vượt quá số đã kiểm đếm còn lại (${maxAssetHH} hộ).`);

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Trash2, Layers, Calendar, FileText, ChevronDown, ChevronUp, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Trash2, Layers, Calendar, FileText, ChevronDown, ChevronUp, AlertCircle, CheckCircle2, Plus } from "lucide-react";
 import { Project } from "../../types";
 import { CustomDatePicker } from "../ui-primitives";
 import { updateStepStatus, addRound, updateRound, removeRound } from "../../lib/projectService";
@@ -60,7 +60,7 @@ export const PlanPublicStep: React.FC<PlanPublicStepProps> = ({
       if (days < 20) {
         return {
           text: `Đã hoàn thành niêm yết (${days} ngày - Cảnh báo: Ít hơn 20 ngày)`,
-          color: "text-amber-700 bg-amber-50 border-amber-200",
+          color: "text-amber-700 bg-amber-50 border-cyan-100",
           warning: true
         };
       }
@@ -111,20 +111,17 @@ export const PlanPublicStep: React.FC<PlanPublicStepProps> = ({
   };
 
   return (
-    <div className="w-full space-y-4">
-      <div className="w-full border-t border-slate-100 pt-3 space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2.5 2.5 0 00-2.5-2.5H15" />
-            </svg>
-            Quản lý các đợt niêm yết công khai phương án {rounds.length > 0 && `(${rounds.length})`}
+    <div className="w-full space-y-5">
+      <div className="w-full border-t border-slate-100 pt-1 space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-200/80 pb-3">
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-600 uppercase tracking-wider leading-none select-none">
+            📢 Quản lý các đợt niêm yết công khai phương án {rounds.length > 0 && `(${rounds.length})`}
           </div>
           {canEdit && (
             <button
               type="button"
               onClick={handleAddRound}
-              className="text-[10px] font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+              className="text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100/80 px-4 py-2 rounded-xl border border-emerald-200/65 transition-all cursor-pointer shadow-3xs hover:shadow-2xs active:scale-98 select-none"
             >
               + Thêm đợt niêm yết mới
             </button>
@@ -132,18 +129,19 @@ export const PlanPublicStep: React.FC<PlanPublicStepProps> = ({
         </div>
 
         {rounds.length === 0 ? (
-          <div className="flex flex-col items-center justify-center p-6 text-center border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
-            <AlertCircle className="w-6 h-6 text-slate-300 mb-2" />
-            <p className="text-xs font-semibold text-slate-500">Chưa thiết lập đợt niêm yết nào.</p>
-            <p className="text-[10px] text-slate-400 mt-1">Niêm yết tối thiểu 20 ngày theo Điều 48 Luật Đất Đai để đủ điều kiện quyết định phê duyệt.</p>
+          <div className="flex flex-col items-center justify-center p-8 text-center border-2 border-dashed border-slate-200 rounded-3xl bg-slate-50/30">
+            <AlertCircle className="w-8 h-8 text-slate-300 mb-3" />
+            <p className="text-xs font-bold text-slate-650">Chưa thiết lập đợt niêm yết nào.</p>
+            <p className="text-[10.5px] text-slate-400 mt-1.5 max-w-sm">Niêm yết tối thiểu 20 ngày theo Điều 48 Luật Đất Đai để đủ điều kiện ra quyết định phê duyệt chính thức.</p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {rounds.map((round: any, idx: number) => {
               const rId = `${stepKey}_${round.id}`;
               const isExpanded = !!expandedRounds[rId];
               const draftMatch = draftRounds.find((r: any) => r.id === round.draftRoundId);
               const status = getStatusInfo(round.startDate || round.date, round.endDate);
+              const isCurrentActive = status.text.includes("Đang niêm yết");
 
               const getRoundLabel = (r: any) => {
                 const types = [];
@@ -158,10 +156,20 @@ export const PlanPublicStep: React.FC<PlanPublicStepProps> = ({
               return (
                 <div
                   key={round.id}
-                  className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm"
+                  className={cn(
+                    "bg-white rounded-2xl border overflow-hidden shadow-xs transition-all duration-300",
+                    isCurrentActive
+                      ? "border-emerald-300 ring-2 ring-emerald-50/40 bg-gradient-to-br from-white to-emerald-50/5"
+                      : isExpanded
+                        ? "border-slate-300 shadow-sm border-l-4 border-l-emerald-555"
+                        : "border-slate-200 hover:border-slate-300 hover:shadow-xs"
+                  )}
                 >
                   <div
-                    className="p-3.5 flex flex-col md:flex-row md:items-center justify-between gap-3 cursor-pointer hover:bg-slate-50/60 transition-colors"
+                    className={cn(
+                      "p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer transition-colors select-none",
+                      isCurrentActive ? "hover:bg-emerald-50/10" : "hover:bg-slate-50/50"
+                    )}
                     onClick={() =>
                       setExpandedRounds((prev) => ({
                         ...prev,
@@ -169,44 +177,54 @@ export const PlanPublicStep: React.FC<PlanPublicStepProps> = ({
                       }))
                     }
                   >
-                    <div className="flex items-start gap-3">
+                    <div className="flex items-start gap-4">
                       <div className="mt-1 shrink-0">
-                        <CheckCircle2 className={cn("w-4 h-4", status.warning ? "text-amber-500" : "text-green-500")} />
+                        {isCurrentActive ? (
+                          <span className="relative flex h-5 w-5">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-5 w-5 bg-emerald-600 flex items-center justify-center text-[10px] text-white font-bold leading-none animate-bounce">📢</span>
+                          </span>
+                        ) : (
+                          <CheckCircle2 className={cn("w-5 h-5", status.warning ? "text-amber-500 animate-pulse" : "text-emerald-500")} />
+                        )}
                       </div>
-                      <div>
+                      <div className="space-y-1">
                         {draftMatch ? (
-                          <div className="text-[11px] font-bold text-slate-750 font-sans tracking-tight leading-snug">
-                            Niêm yết phương án đợt {draftRounds.indexOf(draftMatch) + 1} {draftMatch.notes ? `- ${draftMatch.notes}` : ""} [{getRoundLabel(draftMatch)}]
+                          <div className="text-[13px] font-bold text-slate-900 font-sans tracking-tight leading-snug">
+                            Niêm yết phương án đợt {draftRounds.indexOf(draftMatch) + 1} {draftMatch.notes ? `- ${draftMatch.notes}` : ""} <span className="font-semibold text-slate-400 text-[11px] ml-1">[{getRoundLabel(draftMatch)}]</span>
                           </div>
                         ) : (
-                          <div className="text-[11px] font-bold text-slate-500 font-sans italic">
+                          <div className="text-[13px] font-bold text-slate-550 font-sans italic">
                             {round.name || "Chưa chọn đợt lập phương án tương ứng"}
                           </div>
                         )}
                         {(round.startDate || round.date || round.endDate) && (
-                          <div className="text-[10px] text-slate-400 mt-1 flex flex-wrap items-center gap-x-2">
-                            <span>Thời hạn niêm yết:</span>
-                            <span className="font-semibold text-slate-600 font-mono">{round.startDate || round.date || "..."}</span>
-                            <span>đến</span>
-                            <span className="font-semibold text-slate-600 font-mono">{round.endDate || "..."}</span>
+                          <div className="text-[10.5px] text-slate-500 flex flex-wrap items-center gap-1.5 pt-0.5">
+                            <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Thời hạn:</span>
+                            <span className="font-bold text-slate-705 bg-slate-100 px-2 py-0.5 rounded-md font-mono text-[10px]">{round.startDate || round.date || "..."}</span>
+                            <span className="text-slate-400">đến</span>
+                            <span className="font-bold text-slate-705 bg-slate-100 px-2 py-0.5 rounded-md font-mono text-[10px]">{round.endDate || "..."}</span>
                           </div>
                         )}
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2.5 ml-7 md:ml-auto shrink-0">
-                      <span className={cn("text-[9px] font-bold uppercase px-2.5 py-0.5 rounded border whitespace-nowrap", status.color)}>
+                    <div className="flex items-center gap-3 ml-8 md:ml-auto shrink-0">
+                      <span className={cn(
+                        "text-[9.5px] font-extrabold uppercase px-2.5 py-1 rounded-full border tracking-wide whitespace-nowrap shadow-3xs",
+                        status.color
+                      )}>
                         {status.text}
                       </span>
-                      {isExpanded ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+                      {isExpanded ? <ChevronUp className="w-4.5 h-4.5 text-slate-400" /> : <ChevronDown className="w-4.5 h-4.5 text-slate-400" />}
                     </div>
                   </div>
 
                   {isExpanded && (
-                    <div className="border-t border-slate-100 bg-slate-50/40 p-4 space-y-4">
+                    <div className="border-t border-slate-100 bg-slate-50/30 p-5 space-y-4 animate-in fade-in duration-200">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-1.5Col">
-                          <label className="text-[9px] font-bold text-slate-400 uppercase">
+                        <div className="space-y-1.5">
+                          <label className="text-[9.5px] font-black text-slate-400 uppercase tracking-wider block select-none">
                             Liên kết đợt lập phương án tương ứng
                           </label>
                           <select
@@ -228,7 +246,7 @@ export const PlanPublicStep: React.FC<PlanPublicStepProps> = ({
                               );
                             }}
                             disabled={!canEdit}
-                            className="w-full bg-white border border-slate-200 rounded-md px-2.5 py-1.5 text-[11px] font-medium text-slate-700 outline-none shadow-sm focus:border-blue-400 focus:ring-1 focus:ring-blue-400/20"
+                            className="w-full bg-white border border-slate-200 hover:border-slate-300 rounded-xl px-3.5 py-1.5 text-xs font-bold text-slate-700 outline-none focus:border-blue-500 transition-all font-sans h-9 shadow-3xs select-none cursor-pointer"
                           >
                             <option value="">-- Chọn đợt PA --</option>
                             {draftRounds.map((draft: any, dIdx: number) => (
@@ -241,7 +259,7 @@ export const PlanPublicStep: React.FC<PlanPublicStepProps> = ({
 
                         <div className="grid grid-cols-2 gap-3">
                           <div className="space-y-1.5">
-                            <label className="text-[9px] font-bold text-slate-400 uppercase">
+                            <label className="text-[9.5px] font-black text-slate-400 uppercase tracking-wider block">
                               Từ ngày (Bắt đầu)
                             </label>
                             <CustomDatePicker
@@ -251,7 +269,7 @@ export const PlanPublicStep: React.FC<PlanPublicStepProps> = ({
                             />
                           </div>
                           <div className="space-y-1.5">
-                            <label className="text-[9px] font-bold text-slate-400 uppercase">
+                            <label className="text-[9.5px] font-black text-slate-400 uppercase tracking-wider block">
                               Đến ngày (Kết thúc)
                             </label>
                             <CustomDatePicker
@@ -264,13 +282,13 @@ export const PlanPublicStep: React.FC<PlanPublicStepProps> = ({
                       </div>
 
                       {status.warning && (
-                        <div className="p-3 rounded-lg border border-amber-200 bg-amber-50/50 flex items-start gap-2 text-[10px] text-amber-700 font-medium">
-                          <AlertCircle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                          <span>Thời hạn niêm yết ít hơn 20 ngày làm việc. Quý ban cần rà soát luật hoặc cập nhật lại biên bản niêm yết để tránh các khiếu nại tranh chấp về mặt pháp lý sau này.</span>
+                        <div className="p-4 rounded-xl border border-amber-200 bg-amber-50/50 flex items-start gap-2.5 text-[11px] text-amber-800 font-medium font-sans">
+                          <AlertCircle className="w-5 h-5 text-amber-550 shrink-0 mt-0.5" />
+                          <span>🚨 <strong>Cảnh báo pháp lý:</strong> Thời hạn niêm yết ít hơn 20 ngày làm việc. Quý ban cần rà soát lại quy định hoặc cập nhật chính xác Biên bản niêm yết để tránh các rủi ro khiếu nại, tranh chấp hoặc bồi thường chậm trễ sau này.</span>
                         </div>
                       )}
 
-                      <div className="w-full border-t border-slate-100 pt-3">
+                      <div className="w-full border-t border-slate-100 pt-4">
                         <DocumentLinkList
                           links={round.links || []}
                           onChange={(newLinks) =>
@@ -288,21 +306,21 @@ export const PlanPublicStep: React.FC<PlanPublicStepProps> = ({
                       </div>
 
                       {canEdit && (
-                        <div className="flex items-center justify-end pt-3 border-t border-slate-100">
+                        <div className="flex items-center justify-end pt-4 border-t border-slate-100">
                           {roundDeletingId === round.id ? (
-                            <div className="flex items-center gap-1.5 bg-red-50 p-1.5 rounded-lg border border-red-100">
-                              <span className="text-[9px] font-bold text-red-700 uppercase px-1">Xác nhận xoá?</span>
+                            <div className="flex items-center gap-1.5 bg-red-50 p-2 rounded-xl border border-red-100 shadow-2xs">
+                              <span className="text-[9.5px] font-black text-red-700 uppercase px-1.5">Xác nhận xoá?</span>
                               <button
                                 type="button"
                                 onClick={() => handleRemoveRound(round.id)}
-                                className="px-2.5 py-1 bg-red-650 text-white text-[9px] font-bold rounded shadow-sm hover:bg-red-700 transition-colors uppercase cursor-pointer"
+                                className="px-3 py-1.5 bg-red-650 text-white text-[9.5px] font-black rounded-lg shadow-sm hover:bg-red-700 hover:scale-103 active:scale-97 transition-all uppercase cursor-pointer"
                               >
                                 Xoá
                               </button>
                               <button
                                 type="button"
                                 onClick={() => setRoundDeletingId(null)}
-                                className="px-2.5 py-1 bg-white border border-slate-200 text-slate-600 text-[9px] font-bold rounded shadow-sm hover:bg-slate-50 transition-colors uppercase cursor-pointer"
+                                className="px-3 py-1.5 bg-white border border-slate-200 text-slate-650 text-[9.5px] font-bold rounded-lg shadow-sm hover:bg-slate-50 hover:scale-103 active:scale-97 transition-all uppercase cursor-pointer"
                               >
                                 Huỷ
                               </button>
@@ -311,7 +329,7 @@ export const PlanPublicStep: React.FC<PlanPublicStepProps> = ({
                             <button
                               type="button"
                               onClick={() => setRoundDeletingId(round.id)}
-                              className="flex items-center gap-1.5 text-[9px] font-extrabold text-red-500 hover:bg-red-50 hover:text-red-600 px-3 py-1.5 rounded-lg uppercase transition-all cursor-pointer"
+                              className="flex items-center gap-1.5 text-[9.5px] font-extrabold text-red-505 hover:bg-red-50/80 hover:text-red-600 px-3.5 py-1.5 rounded-xl uppercase transition-all cursor-pointer"
                             >
                               <Trash2 className="w-3.5 h-3.5" /> Xoá đợt niêm yết
                             </button>

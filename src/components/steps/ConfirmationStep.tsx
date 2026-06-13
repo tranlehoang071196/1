@@ -23,9 +23,9 @@ export const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
 
   return (
     <div className="flex flex-col gap-4 mt-2 w-full">
-      <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-          <FileText className="w-3.5 h-3.5 text-blue-500" />
+      <div className="flex items-center justify-between border-b border-slate-200/80 pb-3">
+        <span className="text-xs font-bold text-slate-600 uppercase tracking-wider flex items-center gap-2">
+          <FileText className="w-4 h-4 text-emerald-500" />
           Danh sách văn bản đề nghị xác nhận
         </span>
         {canEdit && (
@@ -44,7 +44,7 @@ export const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
                 docs: [...current, newItem],
               });
             }}
-            className="text-[10px] font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg border border-blue-200 transition-colors cursor-pointer"
+            className="text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100/80 px-4 py-2 rounded-xl border border-emerald-200/65 transition-all cursor-pointer shadow-3xs hover:shadow-2xs active:scale-98"
           >
             + Thêm văn bản
           </button>
@@ -52,23 +52,23 @@ export const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
       </div>
 
       {docs.length === 0 ? (
-        <div className="text-center py-6 text-xs text-slate-400 italic bg-slate-50 rounded-xl border border-dashed border-slate-200 font-sans">
+        <div className="text-center py-8 text-xs text-slate-400 italic bg-slate-50 rounded-2xl border border-dashed border-slate-200 font-sans shadow-3xs">
           Chưa có văn bản đề nghị nào. Nhấn "+ Thêm văn bản" để bắt đầu.
         </div>
       ) : (
-        <div className="space-y-3.5 font-sans">
+        <div className="space-y-4 font-sans bg-slate-50/50 p-4 rounded-2xl border border-slate-200/60 shadow-3xs">
           {docs.map((doc: any, dIdx: number) => {
             const docLinks = doc.links || [];
             return (
               <div
                 key={doc.id || dIdx}
-                className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col gap-3"
+                className="bg-white p-4 rounded-2xl border border-slate-200/85 hover:border-slate-300 transition-all flex flex-col gap-3.5 shadow-3xs"
               >
-                <div className="flex items-center justify-between gap-2.5 pb-2 border-b border-slate-100">
-                  <div className="flex-grow max-w-md">
+                <div className="flex items-center justify-between gap-3 pb-2.5 border-b border-slate-100">
+                  <div className="flex-grow max-w-xl">
                     <EditableInput
                       placeholder="Tên văn bản (Ví dụ: Đề nghị xác nhận nhân khẩu xã...)"
-                      className="w-full bg-white border border-slate-200 rounded px-2.5 py-1 text-[11px] text-slate-800 outline-none placeholder-slate-400 font-bold"
+                      className="w-full h-8 bg-slate-50 border border-slate-200 focus:border-blue-500 rounded-xl px-3.5 text-xs text-slate-800 outline-none placeholder-slate-400 font-bold transition-all"
                       value={doc.name || ""}
                       onSave={(val) => {
                         const newDocs = [...docs];
@@ -94,17 +94,17 @@ export const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
                           docs: newDocs,
                         });
                       }}
-                      className="p-1 px-1.5 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded border border-transparent hover:border-red-100"
+                      className="p-1.5 text-slate-400 hover:text-red-500 bg-slate-50 hover:bg-red-55 rounded-xl border border-slate-200 hover:border-red-200 transition-all shadow-3xs cursor-pointer"
                       title="Xoá văn bản này"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase w-28 whitespace-nowrap">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-bold text-slate-500 uppercase w-36 whitespace-nowrap select-none">
                       Ngày gửi văn bản:
                     </span>
                     <CustomDatePicker
@@ -124,8 +124,8 @@ export const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
                     />
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase w-28 whitespace-nowrap">
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-bold text-slate-500 uppercase w-36 whitespace-nowrap select-none">
                       Hạn xử lý:
                     </span>
                     <CustomDatePicker
@@ -147,7 +147,7 @@ export const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
                 </div>
 
                 {/* Individual Link list inside doc */}
-                <div className="mt-2 pt-2 border-t border-slate-100">
+                <div className="mt-2 pt-2.5 border-t border-slate-100">
                   <DocumentLinkList
                     links={docLinks}
                     onChange={(newLinks) => {

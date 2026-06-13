@@ -6,6 +6,30 @@ import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { toast } from 'sonner';
 import { cn } from '../lib/utils';
 
+const safeToMillis = (ts: any): number => {
+  if (!ts) return 0;
+  if (typeof ts.toMillis === 'function') {
+    return ts.toMillis();
+  }
+  if (typeof ts.toDate === 'function') {
+    return ts.toDate().getTime();
+  }
+  if (ts instanceof Date) {
+    return ts.getTime();
+  }
+  if (typeof ts === 'number') {
+    return ts;
+  }
+  if (typeof ts === 'string') {
+    const parsed = Date.parse(ts);
+    return isNaN(parsed) ? 0 : parsed;
+  }
+  if (ts.seconds !== undefined) {
+    return ts.seconds * 1000 + (ts.nanoseconds || 0) / 1000000;
+  }
+  return 0;
+};
+
 interface AuthorizedUser {
   id: string;
   email: string;
@@ -66,8 +90,8 @@ export function UserManagementView() {
         })) as PendingUser[];
         
         pu.sort((a, b) => {
-          const timeA = a.requestedAt?.toMillis() || 0;
-          const timeB = b.requestedAt?.toMillis() || 0;
+          const timeA = safeToMillis(a.requestedAt);
+           const timeB = safeToMillis(b.requestedAt);
           return timeB - timeA;
         });
         setPendingUsers(pu);
@@ -213,8 +237,8 @@ export function UserManagementView() {
   }));
 
   const allPendingUsers = [...pendingUsers, ...legacyPendingUsers].sort((a, b) => {
-    const timeA = a.requestedAt?.toMillis?.() || 0;
-    const timeB = b.requestedAt?.toMillis?.() || 0;
+    const timeA = safeToMillis(a.requestedAt);
+    const timeB = safeToMillis(b.requestedAt);
     return timeB - timeA;
   });
 

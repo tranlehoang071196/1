@@ -18,39 +18,27 @@ service cloud.firestore {
       return get(userRef()).data;
     }
 
-    function isMasterAdminEmail(email) {
-      return email.lower() in ['kingofhero241@gmail.com', 'tranlehoang.071196@gmail.com'];
-    }
-
     function userExists() {
-      return isSignedIn() && (
-        isMasterAdminEmail(request.auth.token.get('email', '')) ||
-        exists(userRef())
-      );
+      return isSignedIn() && exists(userRef());
     }
 
     function isAdmin() {
       return isSignedIn() && (
-        isMasterAdminEmail(request.auth.token.get('email', '')) || (
-          exists(userRef()) && 
-          userData().role == "admin" && 
-          userData().get('status', 'approved') == "approved"
-        )
+        exists(userRef()) && 
+        userData().role == "admin" && 
+        userData().get('status', 'approved') == "approved"
       );
     }
 
     function isApprovedUser() {
       return isSignedIn() && (
-        isMasterAdminEmail(request.auth.token.get('email', '')) || (
-          exists(userRef()) && 
-          userData().get('status', 'approved') == "approved"
-        )
+        exists(userRef()) && 
+        userData().get('status', 'approved') == "approved"
       );
     }
 
     function isProjectEditor(projectId) {
       return isApprovedUser() && 
-        userExists() &&
         (userData().role == "editor" || userData().role == "admin") &&
         (request.auth.token.get('email', '').lower() in 
          get(/databases/$(database)/documents/projects/$(projectId)).data.get('authorizedEmails', [])
@@ -125,7 +113,6 @@ service cloud.firestore {
 
     match /authorized_emails/{email} {
       allow get: if isSignedIn() && (
-        isMasterAdminEmail(request.auth.token.get('email', '')) ||
         request.auth.token.get('email', '').lower() == email.lower() ||
         isAdmin()
       );

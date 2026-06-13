@@ -1,5 +1,5 @@
-import React from "react";
-import { Trash2, Layers, X } from "lucide-react";
+import React, { useState } from "react";
+import { Trash2, Layers, X, Plus } from "lucide-react";
 import { Project } from "../../types";
 import { CustomDatePicker, NumberInput, CurrencyInput, EditableInput } from "../ui-primitives";
 import { updateStepStatus } from "../../lib/projectService";
@@ -22,6 +22,7 @@ export const ApprovalStep: React.FC<ApprovalStepProps> = ({
 }) => {
   const approvalData = stepData as any;
   const roundsList = approvalData?.rounds || [];
+  const [activeRoundId, setActiveRoundId] = useState<string | null>(null);
 
   const formatDecisionTitle = (r: any, rIdx: number) => {
     const decisionNo = (r.decisionNo || "").trim();
@@ -46,7 +47,7 @@ export const ApprovalStep: React.FC<ApprovalStepProps> = ({
     const hasDate = !!(day && month && year && !isNaN(Number(day)) && !isNaN(Number(month)) && !isNaN(Number(year)));
 
     if (!decisionNo && !cleanArea && !hasDate) {
-      return "Quyết định mới";
+      return `Quyết định phê duyệt số ${rIdx + 1}`;
     }
 
     let titleParts = [];
@@ -94,27 +95,27 @@ export const ApprovalStep: React.FC<ApprovalStepProps> = ({
   );
 
   const invDoneAgriPlots = invAgriRounds.reduce(
-    (acc: number, r: any) => acc + (r.donePlots || 0),
+    (acc: number, r: any) => Number(acc) + Number(r.donePlots || 0),
     0,
   );
   const invDoneAgriHouseholds = invAgriRounds.reduce(
-    (acc: number, r: any) => acc + (r.doneHouseholds || 0),
+    (acc: number, r: any) => Number(acc) + Number(r.doneHouseholds || 0),
     0,
   );
   const invDoneNonAgriPlots = invNonAgriRounds.reduce(
-    (acc: number, r: any) => acc + (r.donePlots || 0),
+    (acc: number, r: any) => Number(acc) + Number(r.donePlots || 0),
     0,
   );
   const invDoneNonAgriHouseholds = invNonAgriRounds.reduce(
-    (acc: number, r: any) => acc + (r.doneHouseholds || 0),
+    (acc: number, r: any) => Number(acc) + Number(r.doneHouseholds || 0),
     0,
   );
   const invDoneOrgs = invOrgRounds.reduce(
-    (acc: number, r: any) => acc + (r.doneOrgs || 0),
+    (acc: number, r: any) => Number(acc) + Number(r.doneOrgs || 0),
     0,
   );
   const invDoneAssetHouseholds = invAssetRounds.reduce(
-    (acc: number, r: any) => acc + (r.doneHouseholds || 0),
+    (acc: number, r: any) => Number(acc) + Number(r.doneHouseholds || 0),
     0,
   );
 
@@ -148,7 +149,7 @@ export const ApprovalStep: React.FC<ApprovalStepProps> = ({
                 : item.id === "structures"
                   ? r.doneStructures
                   : 0;
-        return acc + (Number(rVal) || 0);
+        return Number(acc) + Number(Number(rVal) || 0);
       },
       0,
     );
@@ -198,11 +199,11 @@ export const ApprovalStep: React.FC<ApprovalStepProps> = ({
   const getOrgsVal = (r: any) => (r.orgs ?? (r.targetType === 'org' ? r.doneOrgs : 0)) || 0;
   const getAssetHH = (r: any) => (r.assetHouseholds ?? (r.targetType === 'assets' ? r.doneHouseholds : 0)) || 0;
 
-  const doneAgriPlots = roundsList.reduce((acc: number, r: any) => acc + getAgriPlots(r), 0);
-  const doneAgriHouseholds = roundsList.reduce((acc: number, r: any) => acc + getAgriHH(r), 0);
-  const doneNonAgriPlots = roundsList.reduce((acc: number, r: any) => acc + getNonAgriPlots(r), 0);
-  const doneNonAgriHouseholds = roundsList.reduce((acc: number, r: any) => acc + getNonAgriHH(r), 0);
-  const doneOrgs = roundsList.reduce((acc: number, r: any) => acc + getOrgsVal(r), 0);
+  const doneAgriPlots = roundsList.reduce((acc: number, r: any) => Number(acc) + Number(getAgriPlots(r)), 0);
+  const doneAgriHouseholds = roundsList.reduce((acc: number, r: any) => Number(acc) + Number(getAgriHH(r)), 0);
+  const doneNonAgriPlots = roundsList.reduce((acc: number, r: any) => Number(acc) + Number(getNonAgriPlots(r)), 0);
+  const doneNonAgriHouseholds = roundsList.reduce((acc: number, r: any) => Number(acc) + Number(getNonAgriHH(r)), 0);
+  const doneOrgs = roundsList.reduce((acc: number, r: any) => Number(acc) + Number(getOrgsVal(r)), 0);
 
   // Dynamic asset types done counts
   const assetDoneParts: string[] = [];
@@ -212,7 +213,7 @@ export const ApprovalStep: React.FC<ApprovalStepProps> = ({
       const legacyAssetsVal = r.targetType === 'assets' ? 
         (item.id === "graves" ? r.doneGraves : item.id === "assets" ? r.doneAssets : item.id === "structures" ? r.doneStructures : 0) : 0;
       const rVal = r[`asset_${item.id}`] ?? (r[item.id] !== undefined ? r[item.id] : legacyAssetsVal);
-      return acc + (Number(rVal) || 0);
+      return Number(acc) + Number(Number(rVal) || 0);
     }, 0);
 
     const invCountVal = invDoneAssetsMap[item.id] || 0;
@@ -223,7 +224,7 @@ export const ApprovalStep: React.FC<ApprovalStepProps> = ({
     }
   });
 
-  const doneAssetHouseholds = roundsList.reduce((acc: number, r: any) => acc + getAssetHH(r), 0);
+  const doneAssetHouseholds = roundsList.reduce((acc: number, r: any) => Number(acc) + Number(getAssetHH(r)), 0);
 
   let assetProgressText = "";
   if (assetDoneParts.length > 0) {
@@ -237,13 +238,13 @@ export const ApprovalStep: React.FC<ApprovalStepProps> = ({
 
   // Calculate total compensation amount across all approval rounds
   const totalAmount = roundsList.reduce(
-    (acc: number, r: any) => acc + (r.amount || 0),
+    (acc: number, r: any) => Number(acc) + Number(r.amount || 0),
     0,
   );
 
   // Calculate total cost across all approval rounds
   const totalCost = roundsList.reduce(
-    (acc: number, r: any) => acc + (r.cost || 0),
+    (acc: number, r: any) => Number(acc) + Number(r.cost || 0),
     0,
   );
 
@@ -261,23 +262,28 @@ export const ApprovalStep: React.FC<ApprovalStepProps> = ({
     };
   };
 
-  return (
-    <div className="flex flex-col gap-4 mt-2 w-full">
-      {/* Progress / Summary Dashboard */}
-      <div className="border border-slate-200 rounded-xl bg-slate-50/50 p-4 space-y-3">
-        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-sans">
-          Tiến độ phê duyệt phương án
-        </span>
+  const selectedRoundIndex = roundsList.findIndex((r: any) => r.id === activeRoundId);
+  const currentActiveId = activeRoundId || roundsList[0]?.id;
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-1.5 pl-2 border-l-2 border-emerald-500">
-            <span className="text-[9.5px] font-black text-slate-400 uppercase block select-none">
-              Đã phê duyệt phương án:
+  return (
+    <div className="flex flex-col gap-5 mt-2 w-full">
+      {/* Progress / Summary Dashboard */}
+      <div className="border border-slate-200/80 rounded-2xl bg-white overflow-hidden shadow-xs hover:shadow-sm transition-all duration-300">
+        <div className="px-5 py-4 bg-gradient-to-r from-slate-50 to-slate-100/50 border-b border-slate-100">
+          <span className="text-[12px] font-black text-slate-705 uppercase tracking-wider block font-sans">
+            📊 Tổng quan tiến độ Phê duyệt phương án bồi thường
+          </span>
+        </div>
+
+        <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="space-y-2 pl-3 border-l-2 border-emerald-500 bg-emerald-50/5 p-3 rounded-r-xl">
+            <span className="text-[10px] font-black text-slate-400 uppercase block select-none">
+              ĐÃ PHÊ DUYỆT PHƯƠNG ÁN THEO CHỈ TIÊU:
             </span>
 
             {hasInvAgri &&
               (doneAgriPlots > 0 || doneAgriHouseholds > 0 ? (
-                <div className="text-[11.5px] text-slate-755 font-medium flex items-center gap-1.5 flex-wrap font-sans">
+                <div className="text-[12px] text-slate-755 font-medium flex items-center gap-2 flex-wrap font-sans">
                   <span>
                     🌾{" "}
                     <span className="font-semibold text-slate-500">
@@ -292,7 +298,7 @@ export const ApprovalStep: React.FC<ApprovalStepProps> = ({
                     </strong>
                   </span>
                   {invDoneAgriHouseholds > 0 && (
-                    <span className="text-emerald-600 font-bold text-[10px] bg-emerald-50 px-1 py-0.5 rounded shadow-sm border border-emerald-100">
+                    <span className="text-emerald-650 font-bold text-[10px] bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">
                       {Math.round(
                         (doneAgriHouseholds /
                           invDoneAgriHouseholds) *
@@ -303,7 +309,7 @@ export const ApprovalStep: React.FC<ApprovalStepProps> = ({
                   )}
                 </div>
               ) : (
-                <div className="text-[11.5px] text-slate-400 font-medium font-sans">
+                <div className="text-[12px] text-slate-400 font-medium font-sans">
                   🌾 Chưa phê duyệt phương án đất nông nghiệp (Tổng:{" "}
                   {formatCount(invDoneAgriPlots)} thửa (thuộc{" "}
                   {formatCount(invDoneAgriHouseholds)} hộ))
@@ -313,7 +319,7 @@ export const ApprovalStep: React.FC<ApprovalStepProps> = ({
             {hasInvNonAgri &&
               (doneNonAgriPlots > 0 ||
               doneNonAgriHouseholds > 0 ? (
-                <div className="text-[11.5px] text-slate-755 font-medium flex items-center gap-1.5 flex-wrap font-sans">
+                <div className="text-[12px] text-slate-755 font-medium flex items-center gap-2 flex-wrap font-sans">
                   <span>
                     🏠{" "}
                     <span className="font-semibold text-slate-500">
@@ -328,7 +334,7 @@ export const ApprovalStep: React.FC<ApprovalStepProps> = ({
                     </strong>
                   </span>
                   {invDoneNonAgriHouseholds > 0 && (
-                    <span className="text-emerald-600 font-bold text-[10px] bg-emerald-50 px-1 py-0.5 rounded shadow-sm border border-emerald-100 font-sans">
+                    <span className="text-emerald-650 font-bold text-[10px] bg-emerald-55 px-2 py-0.5 rounded-md border border-emerald-100">
                       {Math.round(
                         (doneNonAgriHouseholds /
                           invDoneNonAgriHouseholds) *
@@ -339,7 +345,7 @@ export const ApprovalStep: React.FC<ApprovalStepProps> = ({
                   )}
                 </div>
               ) : (
-                <div className="text-[11.5px] text-slate-400 font-medium font-sans">
+                <div className="text-[12px] text-slate-400 font-medium font-sans">
                   🏠 Chưa phê duyệt phương án đất phi nông nghiệp (Tổng:{" "}
                   {formatCount(invDoneNonAgriPlots)} thửa
                   (thuộc{" "}
@@ -349,7 +355,7 @@ export const ApprovalStep: React.FC<ApprovalStepProps> = ({
 
             {hasInvOrg &&
               (doneOrgs > 0 ? (
-                <div className="text-[11.5px] text-slate-755 font-medium flex items-center gap-1.5 flex-wrap font-sans">
+                <div className="text-[12px] text-slate-755 font-medium flex items-center gap-2 flex-wrap font-sans">
                   <span>
                     🏢{" "}
                     <span className="font-semibold text-slate-500">
@@ -361,7 +367,7 @@ export const ApprovalStep: React.FC<ApprovalStepProps> = ({
                     </strong>
                   </span>
                   {invDoneOrgs > 0 && (
-                    <span className="text-emerald-600 font-bold text-[10px] bg-emerald-50 px-1 py-0.5 rounded shadow-sm border border-emerald-100">
+                    <span className="text-emerald-650 font-bold text-[10px] bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">
                       {Math.round(
                         (doneOrgs / invDoneOrgs) * 100,
                       )}
@@ -370,7 +376,7 @@ export const ApprovalStep: React.FC<ApprovalStepProps> = ({
                   )}
                 </div>
               ) : (
-                <div className="text-[11.5px] text-slate-400 font-medium font-sans">
+                <div className="text-[12px] text-slate-400 font-medium font-sans">
                   🏢 Chưa phê duyệt phương án tổ chức (Tổng:{" "}
                   {formatCount(invDoneOrgs)} tổ chức)
                 </div>
@@ -378,7 +384,7 @@ export const ApprovalStep: React.FC<ApprovalStepProps> = ({
 
             {hasInvAsset &&
               (assetProgressText ? (
-                <div className="text-[11.5px] text-slate-755 font-medium flex items-center gap-1.5 flex-wrap font-sans">
+                <div className="text-[12px] text-slate-755 font-medium flex items-center gap-2 flex-wrap font-sans">
                   <span>
                     📦{" "}
                     <span className="font-semibold text-slate-500">
@@ -390,7 +396,7 @@ export const ApprovalStep: React.FC<ApprovalStepProps> = ({
                   </span>
                   {invDoneAssetHouseholds > 0 &&
                     doneAssetHouseholds > 0 && (
-                      <span className="text-emerald-600 font-bold text-[10px] bg-emerald-55 px-1 py-0.5 rounded shadow-sm border border-emerald-100">
+                      <span className="text-emerald-650 font-bold text-[10px] bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">
                         {Math.round(
                           (doneAssetHouseholds /
                             invDoneAssetHouseholds) *
@@ -401,7 +407,7 @@ export const ApprovalStep: React.FC<ApprovalStepProps> = ({
                     )}
                 </div>
               ) : (
-                <div className="text-[11.5px] text-slate-400 font-medium font-sans">
+                <div className="text-[12px] text-slate-400 font-medium font-sans">
                   📦 Chưa phê duyệt phương án tài sản (Tổng:{" "}
                   {formatCount(invDoneAssetHouseholds)} hộ)
                 </div>
@@ -411,33 +417,35 @@ export const ApprovalStep: React.FC<ApprovalStepProps> = ({
               !hasInvNonAgri &&
               !hasInvOrg &&
               !hasInvAsset && (
-                <div className="text-[11.5px] text-slate-400 italic font-sans animate-pulse">
+                <div className="text-[12px] text-slate-400 italic font-sans animate-pulse">
                   Chưa ghi nhận đối tượng đã kiểm đếm để phê duyệt đợt
                 </div>
               )}
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pb-1">
-            <div className="bg-emerald-50/50 rounded-xl p-3 border border-emerald-100 flex flex-col justify-between">
-              <span className="text-[10px] font-bold text-emerald-650 uppercase tracking-wide">
-                Tổng số tiền BT, HT cả các QĐ
+          <div className="grid grid-cols-2 gap-4 pb-1">
+            {/* Box 1 */}
+            <div className="bg-gradient-to-br from-emerald-500/10 via-emerald-50/10 to-teal-500/5 rounded-2xl p-4 border border-emerald-150 shadow-3xs flex flex-col justify-between">
+              <span className="text-[9px] font-black text-emerald-650 uppercase tracking-wider select-none leading-tight">
+                💰 Kinh phí phê duyệt bồi thường
               </span>
-              <div className="mt-2 text-base font-black text-emerald-700 flex items-baseline font-mono">
+              <div className="mt-2 text-[17px] font-black text-emerald-700 flex items-baseline font-mono tracking-tight shrink-0">
                 {totalAmount.toLocaleString("vi-VN")}
-                <span className="text-xs font-semibold text-emerald-500 ml-1">
-                  đ
+                <span className="text-[9px] font-semibold text-emerald-500 ml-1">
+                  VND
                 </span>
               </div>
             </div>
 
-            <div className="bg-blue-50/50 rounded-xl p-3 border border-blue-100 flex flex-col justify-between">
-              <span className="text-[10px] font-bold text-blue-650 uppercase tracking-wide">
-                Tổng chi phí thực hiện cả các QĐ
+            {/* Box 2 */}
+            <div className="bg-gradient-to-br from-blue-500/10 via-blue-50/10 to-indigo-55/5 rounded-2xl p-4 border border-blue-150 shadow-3xs flex flex-col justify-between">
+              <span className="text-[9px] font-black text-blue-650 uppercase tracking-wider select-none leading-tight">
+                📊 Chi phí bảo đảm thực hiện (2%)
               </span>
-              <div className="mt-2 text-base font-black text-blue-700 flex items-baseline font-mono">
+              <div className="mt-2 text-[17px] font-black text-blue-700 flex items-baseline font-mono tracking-tight shrink-0">
                 {totalCost.toLocaleString("vi-VN")}
-                <span className="text-xs font-semibold text-blue-500 ml-1">
-                  đ
+                <span className="text-[9px] font-semibold text-blue-500 ml-1">
+                  VND
                 </span>
               </div>
             </div>
@@ -446,20 +454,20 @@ export const ApprovalStep: React.FC<ApprovalStepProps> = ({
       </div>
 
       {/* List of Decisions */}
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-            <Layers className="w-3.5 h-3.5" />
-            Các quyết định phê duyệt
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <span className="text-[11px] font-black text-slate-505 uppercase tracking-widest flex items-center gap-2 select-none font-sans">
+            <Layers className="w-4 h-4 text-slate-400" /> Các quyết định phê duyệt phương án bồi thường
           </span>
           {canEdit && (
             <button
               onClick={() => {
                 const current = approvalData?.rounds || [];
+                const newRoundId = Math.random()
+                  .toString(36)
+                  .substring(2, 11);
                 const item = {
-                  id: Math.random()
-                    .toString(36)
-                    .substring(2, 11),
+                  id: newRoundId,
                   targetType: defaultTargetType,
                   decisionNo: "",
                   approvalDate: "",
@@ -482,39 +490,74 @@ export const ApprovalStep: React.FC<ApprovalStepProps> = ({
                   ...approvalData,
                   rounds: [...current, item],
                 });
+                setActiveRoundId(newRoundId);
               }}
-              className="text-[10px] font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg border border-blue-200 transition-colors cursor-pointer"
+              className="text-[11px] font-bold text-emerald-650 bg-emerald-100/50 hover:bg-emerald-100 border border-emerald-250/50 px-3.5 py-1.5 rounded-xl shadow-2xs hover:shadow-xs transition-all duration-250 cursor-pointer select-none flex items-center gap-1 font-sans"
             >
-              + Thêm quyết định phê duyệt
+              <Plus className="w-3.5 h-3.5" /> Thêm quyết định phê duyệt
             </button>
           )}
         </div>
 
-        <div className="space-y-3">
-          {roundsList.map((round: any, idx: number) => {
-            const otherRounds = roundsList.filter((_, rIdx: number) => rIdx !== idx);
+        {/* Premium Pill container to switcher between active decisions */}
+        {roundsList.length > 0 && (
+          <div className="p-1 rounded-2xl bg-slate-100/80 border border-slate-200/50 flex flex-wrap gap-1.5 mb-2 shadow-2xs">
+            {roundsList.map((r: any, rIdx: number) => {
+              const active = r.id === currentActiveId;
+              return (
+                <button
+                  key={r.id || rIdx}
+                  onClick={() => setActiveRoundId(r.id)}
+                  type="button"
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[11px] font-bold tracking-wide transition-all duration-250 pointer cursor-pointer select-none font-sans ${
+                    active
+                      ? "bg-white text-blue-600 shadow-sm border border-slate-200/60 ring-1 ring-slate-100"
+                      : "bg-transparent border border-transparent text-slate-500 hover:text-slate-800 hover:bg-white/50"
+                  }`}
+                >
+                  <span className={`relative flex h-2 w-2 rounded-full ${active ? "bg-blue-500" : "bg-slate-300"}`}>
+                    {active && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-60"></span>}
+                  </span>
+                  <span>QĐ ĐỢT {rIdx + 1}</span>
+                  {r.decisionNo && (
+                    <span className={`text-[10px] font-semibold font-mono ${active ? "text-blue-500" : "text-emerald-600"}`}>
+                      (Số: {r.decisionNo})
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )}
 
-            const sumOtherAgriPlots = otherRounds.reduce((acc: number, r: any) => acc + getAgriPlots(r), 0);
-            const sumOtherAgriHH = otherRounds.reduce((acc: number, r: any) => acc + getAgriHH(r), 0);
-            const maxAgriPlots = Math.max(0, invDoneAgriPlots - sumOtherAgriPlots);
-            const maxAgriHH = Math.max(0, invDoneAgriHouseholds - sumOtherAgriHH);
+        <div className="space-y-4 animate-in fade-in duration-300">
+          {roundsList
+            .filter((round: any) => round.id === currentActiveId)
+            .map((round: any) => {
+              const idx = roundsList.indexOf(round);
+              const otherRounds = roundsList.filter((_, rIdx: number) => rIdx !== idx);
 
-            const sumOtherNonAgriPlots = otherRounds.reduce((acc: number, r: any) => acc + getNonAgriPlots(r), 0);
-            const sumOtherNonAgriHH = otherRounds.reduce((acc: number, r: any) => acc + getNonAgriHH(r), 0);
-            const maxNonAgriPlots = Math.max(0, invDoneNonAgriPlots - sumOtherNonAgriPlots);
-            const maxNonAgriHH = Math.max(0, invDoneNonAgriHouseholds - sumOtherNonAgriHH);
+              const sumOtherAgriPlots = otherRounds.reduce((acc: number, r: any) => Number(acc) + Number(getAgriPlots(r)), 0);
+              const sumOtherAgriHH = otherRounds.reduce((acc: number, r: any) => Number(acc) + Number(getAgriHH(r)), 0);
+              const maxAgriPlots = Math.max(0, invDoneAgriPlots - sumOtherAgriPlots);
+              const maxAgriHH = Math.max(0, invDoneAgriHouseholds - sumOtherAgriHH);
 
-            const sumOtherOrgs = otherRounds.reduce((acc: number, r: any) => acc + getOrgsVal(r), 0);
-            const maxOrgs = Math.max(0, invDoneOrgs - sumOtherOrgs);
+              const sumOtherNonAgriPlots = otherRounds.reduce((acc: number, r: any) => Number(acc) + Number(getNonAgriPlots(r)), 0);
+              const sumOtherNonAgriHH = otherRounds.reduce((acc: number, r: any) => Number(acc) + Number(getNonAgriHH(r)), 0);
+              const maxNonAgriPlots = Math.max(0, invDoneNonAgriPlots - sumOtherNonAgriPlots);
+              const maxNonAgriHH = Math.max(0, invDoneNonAgriHouseholds - sumOtherNonAgriHH);
 
-            const sumOtherAssetHH = otherRounds.reduce((acc: number, r: any) => acc + getAssetHH(r), 0);
-            const maxAssetHH = Math.max(0, invDoneAssetHouseholds - sumOtherAssetHH);
+              const sumOtherOrgs = otherRounds.reduce((acc: number, r: any) => Number(acc) + Number(getOrgsVal(r)), 0);
+              const maxOrgs = Math.max(0, invDoneOrgs - sumOtherOrgs);
 
-            return (
-              <div
-                key={round.id || idx}
-                className="bg-slate-50 p-4.5 rounded-xl border border-slate-200 shadow-xs flex flex-col gap-3"
-              >
+              const sumOtherAssetHH = otherRounds.reduce((acc: number, r: any) => Number(acc) + Number(getAssetHH(r)), 0);
+              const maxAssetHH = Math.max(0, invDoneAssetHouseholds - sumOtherAssetHH);
+
+              return (
+                <div
+                  key={round.id || idx}
+                  className="bg-white p-5 rounded-2xl border border-slate-200/80 border-l-4 border-l-blue-500 shadow-xs flex flex-col gap-4 transition-all hover:shadow-sm animate-in fade-in duration-200"
+                >
                 {/* Header of Round */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-slate-100 font-sans">
                   <div className="flex flex-wrap items-center gap-2">
@@ -557,15 +600,15 @@ export const ApprovalStep: React.FC<ApprovalStepProps> = ({
                 </div>
 
                 {/* Thông tin quyết định section */}
-                <div className="bg-white p-3 rounded-lg border border-slate-200/50 grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
-                  <div className="md:col-span-3 space-y-1">
-                    <label className="text-[9.5px] font-extrabold text-slate-400 uppercase tracking-wide block">
+                <div className="bg-slate-50/50 p-4.5 rounded-2xl border border-slate-200/60 grid grid-cols-1 md:grid-cols-12 gap-4 items-end shadow-3xs">
+                  <div className="md:col-span-3 space-y-1.5">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-sans select-none">
                       Số QĐ phê duyệt:
                     </label>
                     <EditableInput
                       readOnly={!canEdit}
                       placeholder="Chưa nhập số quyết định..."
-                      className="w-full bg-slate-50 border border-slate-200 rounded px-2.5 py-1 text-[11px] font-bold text-slate-800 outline-none placeholder-slate-400"
+                      className="w-full bg-white border border-slate-200 hover:border-slate-350 focus:border-emerald-500 transition-all rounded-xl px-3 py-2 text-xs font-bold text-slate-800 outline-none placeholder-slate-400 h-9 shadow-3xs"
                       value={round.decisionNo || ""}
                       onSave={(val) => {
                         const newRounds = [...roundsList];
@@ -583,8 +626,8 @@ export const ApprovalStep: React.FC<ApprovalStepProps> = ({
                       }}
                     />
                   </div>
-                  <div className="md:col-span-5 space-y-1">
-                    <label className="text-[9.5px] font-extrabold text-slate-400 uppercase tracking-wide block">
+                  <div className="md:col-span-5 space-y-1.5">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-sans select-none">
                       Đơn vị phê duyệt:
                     </label>
                     <EditableInput
@@ -603,7 +646,7 @@ export const ApprovalStep: React.FC<ApprovalStepProps> = ({
                           });
                         }
                       }}
-                      className="w-full bg-slate-50 border border-slate-200 rounded px-2.5 py-1 text-[11px] font-bold text-slate-800 outline-none placeholder-slate-400"
+                      className="w-full bg-white border border-slate-200 hover:border-slate-350 focus:border-emerald-500 transition-all rounded-xl px-3 py-2 text-xs font-bold text-slate-800 outline-none placeholder-slate-400 h-9 shadow-3xs"
                       value={round.approvalArea || ""}
                       onSave={(val) => {
                         const newRounds = [...roundsList];
@@ -618,37 +661,35 @@ export const ApprovalStep: React.FC<ApprovalStepProps> = ({
                       }}
                     />
                   </div>
-                  <div className="md:col-span-4 space-y-1">
-                    <label className="text-[9.5px] font-extrabold text-slate-400 uppercase tracking-wide block">
+                  <div className="md:col-span-4 space-y-1.5">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-sans select-none">
                       Ngày QĐ phê duyệt:
                     </label>
-                    <div className="h-[26px] flex items-center">
-                      <CustomDatePicker
-                        value={
-                          round.approvalDate ||
-                          round.date ||
-                          ""
-                        }
-                        onChange={(val) => {
-                          const newRounds = [...roundsList];
-                          newRounds[idx] = {
-                            ...newRounds[idx],
-                            approvalDate: val,
-                            date: val,
-                          };
-                          updateStepStatus(project.id, stepKey, {
-                            ...approvalData,
-                            rounds: newRounds,
-                          });
-                        }}
-                        readOnly={!canEdit}
-                      />
-                    </div>
+                    <CustomDatePicker
+                      value={
+                        round.approvalDate ||
+                        round.date ||
+                        ""
+                      }
+                      onChange={(val) => {
+                        const newRounds = [...roundsList];
+                        newRounds[idx] = {
+                          ...newRounds[idx],
+                          approvalDate: val,
+                          date: val,
+                        };
+                        updateStepStatus(project.id, stepKey, {
+                          ...approvalData,
+                          rounds: newRounds,
+                        });
+                      }}
+                      readOnly={!canEdit}
+                    />
                   </div>
                 </div>
 
                 {/* Inputs list based on available inventory */}
-                <div className="flex flex-col gap-y-3 text-[10.5px] text-slate-600 bg-white p-3 rounded-lg border border-slate-100 items-start">
+                <div className="w-full space-y-3 bg-slate-50/75 p-3.5 rounded-2xl border border-slate-200/65 shadow-3xs">
                   {(() => {
                     const activeTypes = (() => {
                       if (Array.isArray(round.activeTypes)) {
@@ -711,9 +752,9 @@ export const ApprovalStep: React.FC<ApprovalStepProps> = ({
                           (typeVal, typeIdx) => (
                             <div
                               key={`${typeVal}-${typeIdx}`}
-                              className="flex flex-wrap items-center gap-3 bg-slate-50/50 p-2 rounded border border-slate-100 w-full xl:w-auto relative group"
+                              className="flex flex-wrap items-center gap-3.5 bg-white p-3 rounded-2xl border border-slate-200 hover:border-slate-300 transition-all duration-200 shadow-3xs w-full relative group"
                             >
-                              <div className="flex items-center gap-1.5 min-w-[170px]">
+                              <div className="flex items-center gap-1.5 min-w-[200px]">
                                 <select
                                   disabled={!canEdit}
                                   value={typeVal}
@@ -779,7 +820,7 @@ export const ApprovalStep: React.FC<ApprovalStepProps> = ({
                                       },
                                     );
                                   }}
-                                  className="bg-transparent text-[11px] font-bold text-slate-700 outline-none cursor-pointer py-1 max-w-[175px]"
+                                  className="bg-white border border-slate-200 hover:border-slate-350 focus:border-emerald-500 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-700 outline-none hover:bg-slate-50/50 uppercase tracking-tight min-w-[175px] font-sans h-8.5 shadow-3xs cursor-pointer transition-all"
                                 >
                                   {availableTypes.map(
                                     (opt) => (
@@ -794,7 +835,7 @@ export const ApprovalStep: React.FC<ApprovalStepProps> = ({
                                             typeVal
                                         }
                                       >
-                                        {opt.label}
+                                        {opt.label.toUpperCase()}
                                       </option>
                                     ),
                                   )}
@@ -805,315 +846,291 @@ export const ApprovalStep: React.FC<ApprovalStepProps> = ({
 
                               {/* Fields inside target row */}
                               {typeVal === "agri" && (
-                                <div className="flex items-center gap-3">
-                                  <div className="flex items-center gap-1.5">
-                                    <span className="text-slate-400 font-semibold select-none">
+                                <div className="flex items-center gap-4">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs font-semibold text-slate-500 select-none font-sans">
                                       Số thửa:
                                     </span>
-                                    <div className="flex items-center px-2 py-0.5 rounded border border-slate-200 bg-white shadow-xs">
-                                      <NumberInput
-                                        readOnly={!canEdit}
-                                        className="w-12 text-center outline-none text-[10.5px] font-bold text-slate-700"
-                                        value={getAgriPlots(
-                                          round,
-                                        )}
-                                        onChange={(val) => {
-                                          const maxAllowed = maxAgriPlots + getAgriPlots(round);
-                                          if (val > maxAllowed) {
-                                            toast.warning(`Số thửa đất nông nghiệp phê duyệt vượt quá giới hạn thẩm định còn lại (${maxAllowed} thửa).`);
-                                          }
-                                          const newRounds = [
-                                            ...roundsList,
-                                          ];
-                                          let rCopy = {
-                                            ...newRounds[idx],
-                                            agriPlots: Math.min(
+                                    <NumberInput
+                                      readOnly={!canEdit}
+                                      className="w-16 h-8.5 text-center bg-white border border-slate-200 hover:border-slate-350 focus:border-emerald-500 transition-colors rounded-xl px-1.5 py-0.5 text-[11px] font-bold text-slate-800 outline-none font-mono shadow-3xs"
+                                      value={getAgriPlots(
+                                        round,
+                                      )}
+                                      tooltipText={`Còn lại ${maxAgriPlots} thửa`}
+                                      onChange={(val) => {
+                                        const maxAllowed = maxAgriPlots + getAgriPlots(round);
+                                        if (val > maxAllowed) {
+                                          toast.warning(`Số thửa đất nông nghiệp phê duyệt vượt quá giới hạn thẩm định còn lại (${maxAllowed} thửa).`);
+                                        }
+                                        const newRounds = [
+                                          ...roundsList,
+                                        ];
+                                        let rCopy = {
+                                          ...newRounds[idx],
+                                          agriPlots: Math.min(
+                                            val,
+                                            maxAllowed,
+                                          ),
+                                        };
+                                        rCopy =
+                                          syncRoundTotals(
+                                            rCopy,
+                                          );
+                                        newRounds[idx] =
+                                          rCopy;
+                                        updateStepStatus(
+                                          project.id,
+                                          stepKey,
+                                          {
+                                            ...approvalData,
+                                            rounds:
+                                              newRounds,
+                                          },
+                                        );
+                                      }}
+                                    />
+                                  </div>
+
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs font-semibold text-slate-500 select-none font-sans">
+                                      Số hộ:
+                                    </span>
+                                    <NumberInput
+                                      readOnly={!canEdit}
+                                      className="w-16 h-8.5 text-center bg-white border border-slate-200 hover:border-slate-350 focus:border-emerald-500 transition-colors rounded-xl px-1.5 py-0.5 text-[11px] font-bold text-slate-800 outline-none font-mono shadow-3xs"
+                                      value={getAgriHH(
+                                        round,
+                                      )}
+                                      tooltipText={`Còn lại ${maxAgriHH} hộ`}
+                                      onChange={(val) => {
+                                        const maxAllowed = maxAgriHH + getAgriHH(round);
+                                        if (val > maxAllowed) {
+                                          toast.warning(`Số hộ đất nông nghiệp phê duyệt vượt quá giới hạn thẩm định còn lại (${maxAllowed} hộ).`);
+                                        }
+                                        const newRounds = [
+                                          ...roundsList,
+                                        ];
+                                        let rCopy = {
+                                          ...newRounds[idx],
+                                          agriHouseholds:
+                                            Math.min(
                                               val,
                                               maxAllowed,
                                             ),
-                                          };
-                                          rCopy =
-                                            syncRoundTotals(
-                                              rCopy,
-                                            );
-                                          newRounds[idx] =
-                                            rCopy;
-                                          updateStepStatus(
-                                            project.id,
-                                            stepKey,
-                                            {
-                                              ...approvalData,
-                                              rounds:
-                                                newRounds,
-                                            },
+                                        };
+                                        rCopy =
+                                          syncRoundTotals(
+                                            rCopy,
                                           );
-                                        }}
-                                      />
-                                    </div>
-                                    <span className="text-[10px] text-slate-400 font-normal select-none">
-                                      / {maxAgriPlots}
-                                    </span>
-                                  </div>
-
-                                  <div className="flex items-center gap-1.5">
-                                    <span className="text-slate-400 font-semibold select-none">
-                                      Số hộ:
-                                    </span>
-                                    <div className="flex items-center px-2 py-0.5 rounded border border-slate-200 bg-white shadow-xs">
-                                      <NumberInput
-                                        readOnly={!canEdit}
-                                        className="w-12 text-center outline-none text-[10.5px] font-bold text-slate-700"
-                                        value={getAgriHH(
-                                          round,
-                                        )}
-                                        onChange={(val) => {
-                                          const maxAllowed = maxAgriHH + getAgriHH(round);
-                                          if (val > maxAllowed) {
-                                            toast.warning(`Số hộ đất nông nghiệp phê duyệt vượt quá giới hạn thẩm định còn lại (${maxAllowed} hộ).`);
-                                          }
-                                          const newRounds = [
-                                            ...roundsList,
-                                          ];
-                                          let rCopy = {
-                                            ...newRounds[idx],
-                                            agriHouseholds:
-                                              Math.min(
-                                                val,
-                                                maxAllowed,
-                                              ),
-                                          };
-                                          rCopy =
-                                            syncRoundTotals(
-                                              rCopy,
-                                            );
-                                          newRounds[idx] =
-                                            rCopy;
-                                          updateStepStatus(
-                                            project.id,
-                                            stepKey,
-                                            {
-                                              ...approvalData,
-                                              rounds:
-                                                newRounds,
-                                            },
-                                          );
-                                        }}
-                                      />
-                                    </div>
-                                    <span className="text-[10px] text-slate-400 font-normal select-none">
-                                      / {maxAgriHH}
-                                    </span>
+                                        newRounds[idx] =
+                                          rCopy;
+                                        updateStepStatus(
+                                          project.id,
+                                          stepKey,
+                                          {
+                                            ...approvalData,
+                                            rounds:
+                                              newRounds,
+                                          },
+                                        );
+                                      }}
+                                    />
                                   </div>
                                 </div>
                               )}
 
                               {typeVal === "non_agri" && (
-                                <div className="flex items-center gap-3">
-                                  <div className="flex items-center gap-1.5">
-                                    <span className="text-slate-400 font-semibold select-none">
+                                <div className="flex items-center gap-4">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs font-semibold text-slate-500 select-none font-sans">
                                       Số thửa:
                                     </span>
-                                    <div className="flex items-center px-2 py-0.5 rounded border border-slate-200 bg-white shadow-xs">
-                                      <NumberInput
-                                        readOnly={!canEdit}
-                                        className="w-12 text-center outline-none text-[10.5px] font-bold text-slate-700"
-                                        value={getNonAgriPlots(
-                                          round,
-                                        )}
-                                        onChange={(val) => {
-                                          const maxAllowed = maxNonAgriPlots + getNonAgriPlots(round);
-                                          if (val > maxAllowed) {
-                                            toast.warning(`Số thửa đất phi nông nghiệp phê duyệt vượt quá giới hạn thẩm định còn lại (${maxAllowed} thửa).`);
-                                          }
-                                          const newRounds = [
-                                            ...roundsList,
-                                          ];
-                                          let rCopy = {
-                                            ...newRounds[idx],
-                                            nonAgriPlots:
-                                              Math.min(
-                                                val,
-                                                maxAllowed,
-                                              ),
-                                          };
-                                          rCopy =
-                                            syncRoundTotals(
-                                              rCopy,
-                                            );
-                                          newRounds[idx] =
-                                            rCopy;
-                                          updateStepStatus(
-                                            project.id,
-                                            stepKey,
-                                            {
-                                              ...approvalData,
-                                              rounds:
-                                                newRounds,
-                                            },
+                                    <NumberInput
+                                      readOnly={!canEdit}
+                                      className="w-16 h-8.5 text-center bg-white border border-slate-200 hover:border-slate-350 focus:border-emerald-500 transition-colors rounded-xl px-1.5 py-0.5 text-[11px] font-bold text-slate-800 outline-none font-mono shadow-3xs"
+                                      value={getNonAgriPlots(
+                                        round,
+                                      )}
+                                      tooltipText={`Còn lại ${maxNonAgriPlots} thửa`}
+                                      onChange={(val) => {
+                                        const maxAllowed = maxNonAgriPlots + getNonAgriPlots(round);
+                                        if (val > maxAllowed) {
+                                          toast.warning(`Số thửa đất phi nông nghiệp phê duyệt vượt quá giới hạn thẩm định còn lại (${maxAllowed} thửa).`);
+                                        }
+                                        const newRounds = [
+                                          ...roundsList,
+                                        ];
+                                        let rCopy = {
+                                          ...newRounds[idx],
+                                          nonAgriPlots:
+                                            Math.min(
+                                              val,
+                                              maxAllowed,
+                                            ),
+                                        };
+                                        rCopy =
+                                          syncRoundTotals(
+                                            rCopy,
                                           );
-                                        }}
-                                      />
-                                    </div>
-                                    <span className="text-[10px] text-slate-400 font-normal select-none">
-                                      / {maxNonAgriPlots}
-                                    </span>
+                                        newRounds[idx] =
+                                          rCopy;
+                                        updateStepStatus(
+                                          project.id,
+                                          stepKey,
+                                          {
+                                            ...approvalData,
+                                            rounds:
+                                              newRounds,
+                                          },
+                                        );
+                                      }}
+                                    />
                                   </div>
 
-                                  <div className="flex items-center gap-1.5">
-                                    <span className="text-slate-400 font-semibold select-none">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs font-semibold text-slate-500 select-none font-sans">
                                       Số hộ:
                                     </span>
-                                    <div className="flex items-center px-2 py-0.5 rounded border border-slate-200 bg-white shadow-xs">
-                                      <NumberInput
-                                        readOnly={!canEdit}
-                                        className="w-12 text-center outline-none text-[10.5px] font-bold text-slate-700"
-                                        value={getNonAgriHH(
-                                          round,
-                                        )}
-                                        onChange={(val) => {
-                                          const maxAllowed = maxNonAgriHH + getNonAgriHH(round);
-                                          if (val > maxAllowed) {
-                                            toast.warning(`Số hộ đất phi nông nghiệp phê duyệt vượt quá giới hạn thẩm định còn lại (${maxAllowed} hộ).`);
-                                          }
-                                          const newRounds = [
-                                            ...roundsList,
-                                          ];
-                                          let rCopy = {
-                                            ...newRounds[idx],
-                                            nonAgriHouseholds:
-                                              Math.min(
-                                                val,
-                                                maxAllowed,
-                                              ),
-                                          };
-                                          rCopy =
-                                            syncRoundTotals(
-                                              rCopy,
-                                            );
-                                          newRounds[idx] =
-                                            rCopy;
-                                          updateStepStatus(
-                                            project.id,
-                                            stepKey,
-                                            {
-                                              ...approvalData,
-                                              rounds:
-                                                newRounds,
-                                            },
+                                    <NumberInput
+                                      readOnly={!canEdit}
+                                      className="w-16 h-8.5 text-center bg-white border border-slate-200 hover:border-slate-350 focus:border-emerald-500 transition-colors rounded-xl px-1.5 py-0.5 text-[11px] font-bold text-slate-800 outline-none font-mono shadow-3xs"
+                                      value={getNonAgriHH(
+                                        round,
+                                      )}
+                                      tooltipText={`Còn lại ${maxNonAgriHH} hộ`}
+                                      onChange={(val) => {
+                                        const maxAllowed = maxNonAgriHH + getNonAgriHH(round);
+                                        if (val > maxAllowed) {
+                                          toast.warning(`Số hộ đất phi nông nghiệp phê duyệt vượt quá giới hạn thẩm định còn lại (${maxAllowed} hộ).`);
+                                        }
+                                        const newRounds = [
+                                          ...roundsList,
+                                        ];
+                                        let rCopy = {
+                                          ...newRounds[idx],
+                                          nonAgriHouseholds:
+                                            Math.min(
+                                              val,
+                                              maxAllowed,
+                                            ),
+                                        };
+                                        rCopy =
+                                          syncRoundTotals(
+                                            rCopy,
                                           );
-                                        }}
-                                      />
-                                    </div>
-                                    <span className="text-[10px] text-slate-400 font-normal select-none">
-                                      / {maxNonAgriHH}
-                                    </span>
+                                        newRounds[idx] =
+                                          rCopy;
+                                        updateStepStatus(
+                                          project.id,
+                                          stepKey,
+                                          {
+                                            ...approvalData,
+                                            rounds:
+                                              newRounds,
+                                          },
+                                        );
+                                      }}
+                                    />
                                   </div>
                                 </div>
                               )}
 
                               {typeVal === "org" && (
-                                <div className="flex items-center gap-3">
-                                  <div className="flex items-center gap-1.5">
-                                    <span className="text-slate-400 font-semibold select-none">
+                                <div className="flex items-center gap-4">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs font-semibold text-slate-500 select-none font-sans">
                                       Số tổ chức:
                                     </span>
-                                    <div className="flex items-center px-2 py-0.5 rounded border border-slate-200 bg-white shadow-xs">
-                                      <NumberInput
-                                        readOnly={!canEdit}
-                                        className="w-12 text-center outline-none text-[10.5px] font-bold text-slate-700"
-                                        value={getOrgsVal(
-                                          round,
-                                        )}
-                                        onChange={(val) => {
-                                          const maxAllowed = maxOrgs + getOrgsVal(round);
-                                          if (val > maxAllowed) {
-                                            toast.warning(`Số tổ chức phê duyệt vượt quá giới hạn thẩm định còn lại (${maxAllowed} tổ chức).`);
-                                          }
-                                          const newRounds = [
-                                            ...roundsList,
-                                          ];
-                                          let rCopy = {
-                                            ...newRounds[idx],
-                                            orgs: Math.min(
-                                              val,
-                                              maxAllowed,
-                                            ),
-                                          };
-                                          rCopy =
-                                            syncRoundTotals(
-                                              rCopy,
-                                            );
-                                          newRounds[idx] =
-                                            rCopy;
-                                          updateStepStatus(
-                                            project.id,
-                                            stepKey,
-                                            {
-                                              ...approvalData,
-                                              rounds:
-                                                newRounds,
-                                            },
+                                    <NumberInput
+                                      readOnly={!canEdit}
+                                      className="w-16 h-8.5 text-center bg-white border border-slate-200 hover:border-slate-350 focus:border-emerald-500 transition-colors rounded-xl px-1.5 py-0.5 text-[11px] font-bold text-slate-800 outline-none font-mono shadow-3xs"
+                                      value={getOrgsVal(
+                                        round,
+                                      )}
+                                      tooltipText={`Còn lại ${maxOrgs} tổ chức`}
+                                      onChange={(val) => {
+                                        const maxAllowed = maxOrgs + getOrgsVal(round);
+                                        if (val > maxAllowed) {
+                                          toast.warning(`Số tổ chức phê duyệt vượt quá giới hạn thẩm định còn lại (${maxAllowed} tổ chức).`);
+                                        }
+                                        const newRounds = [
+                                          ...roundsList,
+                                        ];
+                                        let rCopy = {
+                                          ...newRounds[idx],
+                                          orgs: Math.min(
+                                            val,
+                                            maxAllowed,
+                                          ),
+                                        };
+                                        rCopy =
+                                          syncRoundTotals(
+                                            rCopy,
                                           );
-                                        }}
-                                      />
-                                    </div>
-                                    <span className="text-[10px] text-slate-400 font-normal select-none">
-                                      / {maxOrgs}
-                                    </span>
+                                        newRounds[idx] =
+                                          rCopy;
+                                        updateStepStatus(
+                                          project.id,
+                                          stepKey,
+                                          {
+                                            ...approvalData,
+                                            rounds:
+                                              newRounds,
+                                          },
+                                        );
+                                      }}
+                                    />
                                   </div>
                                 </div>
                               )}
 
                               {typeVal === "assets" && (
-                                <div className="flex flex-wrap items-center gap-3 select-none">
-                                  <div className="flex items-center gap-1.5">
-                                    <span className="text-slate-400 font-semibold">
+                                <div className="flex flex-wrap items-center gap-4 select-none">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs font-semibold text-slate-500 select-none font-sans">
                                       Số hộ:
                                     </span>
-                                    <div className="flex items-center px-2 py-0.5 rounded border border-slate-200 bg-white shadow-xs">
-                                      <NumberInput
-                                        readOnly={!canEdit}
-                                        className="w-12 text-center outline-none text-[10.5px] font-bold text-slate-700"
-                                        value={getAssetHH(
-                                          round,
-                                        )}
-                                        onChange={(val) => {
-                                          const maxAllowed = maxAssetHH + getAssetHH(round);
-                                          if (val > maxAllowed) {
-                                            toast.warning(`Số hộ ảnh hưởng tài sản phê duyệt vượt quá giới hạn thẩm định còn lại (${maxAllowed} hộ).`);
-                                          }
-                                          const newRounds = [
-                                            ...roundsList,
-                                          ];
-                                          let rCopy = {
-                                            ...newRounds[idx],
-                                            assetHouseholds:
-                                              Math.min(
-                                                val,
-                                                maxAllowed,
-                                              ),
-                                          };
-                                          rCopy =
-                                            syncRoundTotals(
-                                              rCopy,
-                                            );
-                                          newRounds[idx] =
-                                            rCopy;
-                                          updateStepStatus(
-                                            project.id,
-                                            stepKey,
-                                            {
-                                              ...approvalData,
-                                              rounds:
-                                                newRounds,
-                                            },
+                                    <NumberInput
+                                      readOnly={!canEdit}
+                                      className="w-16 h-8.5 text-center bg-white border border-slate-200 hover:border-slate-350 focus:border-emerald-500 transition-colors rounded-xl px-1.5 py-0.5 text-[11px] font-bold text-slate-800 outline-none font-mono shadow-3xs"
+                                      value={getAssetHH(
+                                        round,
+                                      )}
+                                      tooltipText={`Còn lại ${maxAssetHH} hộ`}
+                                      onChange={(val) => {
+                                        const maxAllowed = maxAssetHH + getAssetHH(round);
+                                        if (val > maxAllowed) {
+                                          toast.warning(`Số hộ ảnh hưởng tài sản phê duyệt vượt quá giới hạn thẩm định còn lại (${maxAllowed} hộ).`);
+                                        }
+                                        const newRounds = [
+                                          ...roundsList,
+                                        ];
+                                        let rCopy = {
+                                          ...newRounds[idx],
+                                          assetHouseholds:
+                                            Math.min(
+                                              val,
+                                              maxAllowed,
+                                            ),
+                                        };
+                                        rCopy =
+                                          syncRoundTotals(
+                                            rCopy,
                                           );
-                                        }}
-                                      />
-                                    </div>
-                                    <span className="text-[10px] text-slate-400 font-normal">
-                                      / {maxAssetHH}
-                                    </span>
+                                        newRounds[idx] =
+                                          rCopy;
+                                        updateStepStatus(
+                                          project.id,
+                                          stepKey,
+                                          {
+                                            ...approvalData,
+                                            rounds:
+                                              newRounds,
+                                          },
+                                        );
+                                      }}
+                                    />
                                   </div>
 
                                   {assetItems.map((item) => {
@@ -1141,8 +1158,7 @@ export const ApprovalStep: React.FC<ApprovalStepProps> = ({
                                               ? r[item.id]
                                               : 0);
                                           return (
-                                            acc +
-                                            (Number(rVal) ||
+                                            Number(acc) + Number(Number(rVal) ||
                                               0)
                                           );
                                         },
@@ -1163,56 +1179,52 @@ export const ApprovalStep: React.FC<ApprovalStepProps> = ({
                                     return (
                                       <div
                                         key={item.id}
-                                        className="flex items-center gap-1.5"
+                                        className="flex items-center gap-2"
                                       >
-                                        <span className="text-slate-400 font-semibold capitalize font-sans">
+                                        <span className="text-xs font-semibold text-slate-500 capitalize select-none font-sans">
                                           {item.label}:
                                         </span>
-                                        <div className="flex items-center px-2 py-0.5 rounded border border-slate-200 bg-white shadow-xs">
-                                          <NumberInput
-                                            readOnly={
-                                              !canEdit
+                                        <NumberInput
+                                          readOnly={
+                                            !canEdit
+                                          }
+                                          className="w-16 h-8.5 text-center bg-white border border-slate-200 hover:border-slate-350 focus:border-emerald-500 transition-colors rounded-xl px-1.5 py-0.5 text-[11px] font-bold text-slate-800 outline-none font-mono shadow-3xs"
+                                          value={currentVal}
+                                          tooltipText={`Còn lại ${maxItemVal} ${item.label.toLowerCase()}`}
+                                          onChange={(
+                                            val,
+                                          ) => {
+                                            const maxAllowed = maxItemVal + currentVal;
+                                            if (val > maxAllowed) {
+                                              toast.warning(`Số lượng ${item.label.toLowerCase()} phê duyệt vượt quá giới hạn thẩm định còn lại (${maxAllowed}).`);
                                             }
-                                            className="w-12 text-center outline-none text-[10.5px] font-bold text-slate-700"
-                                            value={currentVal}
-                                            onChange={(
-                                              val,
-                                            ) => {
-                                              const maxAllowed = maxItemVal + currentVal;
-                                              if (val > maxAllowed) {
-                                                toast.warning(`Số lượng ${item.label.toLowerCase()} phê duyệt vượt quá giới hạn thẩm định còn lại (${maxAllowed}).`);
-                                              }
-                                              const newRounds =
-                                                [
-                                                  ...roundsList,
-                                                ];
-                                              newRounds[
+                                            const newRounds =
+                                              [
+                                                ...roundsList,
+                                              ];
+                                            newRounds[
+                                              idx
+                                            ] = {
+                                              ...newRounds[
                                                 idx
-                                              ] = {
-                                                ...newRounds[
-                                                  idx
-                                                ],
-                                                [`asset_${item.id}`]:
-                                                  Math.min(
-                                                    val,
-                                                    maxAllowed,
-                                                  ),
-                                              };
-                                              updateStepStatus(
-                                                project.id,
-                                                stepKey,
-                                                {
-                                                  ...approvalData,
-                                                  rounds:
-                                                    newRounds,
-                                                },
-                                              );
-                                            }}
-                                          />
-                                        </div>
-                                        <span className="text-[10px] text-slate-400 font-normal select-none">
-                                          / {maxItemVal}
-                                        </span>
+                                              ],
+                                              [`asset_${item.id}`]:
+                                                Math.min(
+                                                  val,
+                                                  maxAllowed,
+                                                ),
+                                            };
+                                            updateStepStatus(
+                                              project.id,
+                                              stepKey,
+                                              {
+                                                ...approvalData,
+                                                rounds:
+                                                  newRounds,
+                                              },
+                                            );
+                                          }}
+                                        />
                                       </div>
                                     );
                                   })}
@@ -1350,16 +1362,16 @@ export const ApprovalStep: React.FC<ApprovalStepProps> = ({
                     );
                   })()}
 
-                  <div className="w-full flex flex-col md:flex-row md:items-center gap-3 border-t border-slate-100 pt-2 mt-1">
-                    <div className="flex flex-wrap items-center gap-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[9.5px] text-slate-400 font-extrabold uppercase whitespace-nowrap font-sans">
+                  <div className="w-full flex flex-col md:flex-row md:items-center gap-4 border-t border-slate-200/60 pt-4 mt-2">
+                    <div className="flex flex-wrap items-center gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-sans select-none">
                           Tổng số tiền BT, HT:
-                        </span>
-                        <div className="flex items-center px-2 py-0.5 rounded border border-slate-200 bg-slate-50 max-w-xs shadow-xs">
+                        </label>
+                        <div className="flex items-center px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:border-slate-350 focus-within:border-emerald-500 transition-all max-w-xs shadow-3xs h-9">
                           <CurrencyInput
                             readOnly={!canEdit}
-                            className="w-24 text-right bg-transparent outline-none text-[10.5px] font-bold text-emerald-700 font-mono"
+                            className="w-28 text-right bg-transparent outline-none text-xs font-bold text-emerald-700 font-mono"
                             value={round.amount || 0}
                             onChange={(val) => {
                               const newRounds = [...roundsList];
@@ -1373,20 +1385,20 @@ export const ApprovalStep: React.FC<ApprovalStepProps> = ({
                               });
                             }}
                           />
-                          <span className="text-slate-400 ml-1 text-[9.5px] font-sans">
-                            đ
+                          <span className="text-slate-400 ml-1.5 text-xs font-bold font-sans select-none">
+                            VND
                           </span>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2">
-                        <span className="text-[9.5px] text-slate-400 font-extrabold uppercase whitespace-nowrap font-sans">
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-sans select-none">
                           Chi phí thực hiện (nếu có):
-                        </span>
-                        <div className="flex items-center px-2 py-0.5 rounded border border-slate-200 bg-slate-50 max-w-xs shadow-xs">
+                        </label>
+                        <div className="flex items-center px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:border-slate-350 focus-within:border-emerald-500 transition-all max-w-xs shadow-3xs h-9">
                           <CurrencyInput
                             readOnly={!canEdit}
-                            className="w-24 text-right bg-transparent outline-none text-[10.5px] font-bold text-emerald-700 font-mono"
+                            className="w-28 text-right bg-transparent outline-none text-xs font-bold text-emerald-700 font-mono"
                             value={round.cost || 0}
                             onChange={(val) => {
                               const newRounds = [...roundsList];
@@ -1400,17 +1412,20 @@ export const ApprovalStep: React.FC<ApprovalStepProps> = ({
                               });
                             }}
                           />
-                          <span className="text-slate-400 ml-1 text-[9.5px] font-sans">
-                            đ
+                          <span className="text-slate-400 ml-1.5 text-xs font-bold font-sans select-none">
+                            VND
                           </span>
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex-grow">
+                    <div className="flex-grow space-y-1.5 w-full">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-sans select-none">
+                        Ghi chú quyết định:
+                      </label>
                       <EditableInput
                         placeholder="Ghi chú quyết định phê duyệt (xóm, tổ dân phố, hạng mục...)"
-                        className="w-full bg-slate-50 border border-slate-200 rounded px-2.5 py-1 text-[10px] text-slate-700 outline-none placeholder-slate-400 font-semibold"
+                        className="w-full bg-white border border-slate-200 hover:border-slate-350 focus:border-emerald-500 transition-all rounded-xl px-3 py-2 text-xs font-bold text-slate-700 outline-none placeholder-slate-400 h-9 shadow-3xs"
                         value={round.notes || ""}
                         onSave={(val) => {
                           const newRounds = [...roundsList];
@@ -1429,7 +1444,7 @@ export const ApprovalStep: React.FC<ApprovalStepProps> = ({
                   </div>
 
                   {/* Work document links section for the round */}
-                  <div className="w-full pt-1.5 border-t border-slate-100 mt-1">
+                  <div className="w-full pt-3.5 border-t border-slate-200/60 mt-2">
                     <DocumentLinkList
                       links={round.links || []}
                       onChange={(newLinks) => {
@@ -1443,7 +1458,7 @@ export const ApprovalStep: React.FC<ApprovalStepProps> = ({
                           rounds: newRounds,
                         });
                       }}
-                      labelTitle="Hồ sơ công việc (Links):"
+                      labelTitle="Hồ sơ công việc đính kèm (Quyết định, Tờ trình, Bản đồ...):"
                       readOnly={!canEdit}
                     />
                   </div>

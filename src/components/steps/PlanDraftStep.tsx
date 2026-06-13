@@ -82,27 +82,27 @@ export const PlanDraftStep: React.FC<PlanDraftStepProps> = ({
   );
 
   const invDoneAgriPlots = invAgriRounds.reduce(
-    (acc: number, r: any) => acc + (r.donePlots || 0),
+    (acc: number, r: any) => Number(acc) + Number(r.donePlots || 0),
     0,
   );
   const invDoneAgriHouseholds = invAgriRounds.reduce(
-    (acc: number, r: any) => acc + (r.doneHouseholds || 0),
+    (acc: number, r: any) => Number(acc) + Number(r.doneHouseholds || 0),
     0,
   );
   const invDoneNonAgriPlots = invNonAgriRounds.reduce(
-    (acc: number, r: any) => acc + (r.donePlots || 0),
+    (acc: number, r: any) => Number(acc) + Number(r.donePlots || 0),
     0,
   );
   const invDoneNonAgriHouseholds = invNonAgriRounds.reduce(
-    (acc: number, r: any) => acc + (r.doneHouseholds || 0),
+    (acc: number, r: any) => Number(acc) + Number(r.doneHouseholds || 0),
     0,
   );
   const invDoneOrgs = invOrgRounds.reduce(
-    (acc: number, r: any) => acc + (r.doneOrgs || 0),
+    (acc: number, r: any) => Number(acc) + Number(r.doneOrgs || 0),
     0,
   );
   const invDoneAssetHouseholds = invAssetRounds.reduce(
-    (acc: number, r: any) => acc + (r.doneHouseholds || 0),
+    (acc: number, r: any) => Number(acc) + Number(r.doneHouseholds || 0),
     0,
   );
 
@@ -136,7 +136,7 @@ export const PlanDraftStep: React.FC<PlanDraftStepProps> = ({
                 : item.id === "structures"
                   ? r.doneStructures
                   : 0;
-        return acc + (Number(rVal) || 0);
+        return Number(acc) + Number(Number(rVal) || 0);
       },
       0,
     );
@@ -203,60 +203,60 @@ export const PlanDraftStep: React.FC<PlanDraftStepProps> = ({
   // Calculate dynamic done values from plan_draft rounds using fallback to legacy targetType
   const getAgriPlots = (r: any) => {
     if (r.items && r.items.length > 0) {
-      return r.items.filter((item: any) => item.targetType === "agri").reduce((sum: number, item: any) => sum + (item.donePlots || 0), 0);
+      return r.items.filter((item: any) => item.targetType === "agri").reduce((sum: number, item: any) => Number(sum) + Number(item.donePlots || 0), 0);
     }
     return (r.agriPlots ?? (r.targetType === 'agri' ? r.donePlots : 0)) || 0;
   };
   const getAgriHH = (r: any) => {
     if (r.items && r.items.length > 0) {
-      return r.items.filter((item: any) => item.targetType === "agri").reduce((sum: number, item: any) => sum + (item.doneHouseholds || 0), 0);
+      return r.items.filter((item: any) => item.targetType === "agri").reduce((sum: number, item: any) => Number(sum) + Number(item.doneHouseholds || 0), 0);
     }
     return (r.agriHouseholds ?? (r.targetType === 'agri' ? r.doneHouseholds : 0)) || 0;
   };
   const getNonAgriPlots = (r: any) => {
     if (r.items && r.items.length > 0) {
-      return r.items.filter((item: any) => item.targetType === "non_agri").reduce((sum: number, item: any) => sum + (item.donePlots || 0), 0);
+      return r.items.filter((item: any) => item.targetType === "non_agri").reduce((sum: number, item: any) => Number(sum) + Number(item.donePlots || 0), 0);
     }
     return (r.nonAgriPlots ?? (r.targetType === 'non_agri' ? r.donePlots : 0)) || 0;
   };
   const getNonAgriHH = (r: any) => {
     if (r.items && r.items.length > 0) {
-      return r.items.filter((item: any) => item.targetType === "non_agri").reduce((sum: number, item: any) => sum + (item.doneHouseholds || 0), 0);
+      return r.items.filter((item: any) => item.targetType === "non_agri").reduce((sum: number, item: any) => Number(sum) + Number(item.doneHouseholds || 0), 0);
     }
     return (r.nonAgriHouseholds ?? (r.targetType === 'non_agri' ? r.doneHouseholds : 0)) || 0;
   };
   const getOrgsVal = (r: any) => {
     if (r.items && r.items.length > 0) {
-      return r.items.filter((item: any) => item.targetType === "org").reduce((sum: number, item: any) => sum + (item.doneOrgs || 0), 0);
+      return r.items.filter((item: any) => item.targetType === "org").reduce((sum: number, item: any) => Number(sum) + Number(item.doneOrgs || 0), 0);
     }
     return (r.orgs ?? (r.targetType === 'org' ? r.doneOrgs : 0)) || 0;
   };
   const getAssetHH = (r: any) => {
     if (r.items && r.items.length > 0) {
-      return r.items.filter((item: any) => item.targetType === "assets").reduce((sum: number, item: any) => sum + (item.doneHouseholds || 0), 0);
+      return r.items.filter((item: any) => item.targetType === "assets").reduce((sum: number, item: any) => Number(sum) + Number(item.doneHouseholds || 0), 0);
     }
     return (r.assetHouseholds ?? (r.targetType === 'assets' ? r.doneHouseholds : 0)) || 0;
   };
 
   const getInvAgriCompleted = (code: string) => {
     const matching = flatRoundsListForAgg.filter((it: any) => it.targetType === "agri" && it.landType === code);
-    const plots = matching.reduce((sum: number, it: any) => sum + (it.donePlots || 0), 0);
-    const households = matching.reduce((sum: number, it: any) => sum + (it.doneHouseholds || 0), 0);
+    const plots = matching.reduce((sum: number, it: any) => Number(sum) + Number(it.donePlots || 0), 0);
+    const households = matching.reduce((sum: number, it: any) => Number(sum) + Number(it.doneHouseholds || 0), 0);
     return { plots, households };
   };
 
   const getInvNonAgriCompleted = (code: string) => {
     const matching = flatRoundsListForAgg.filter((it: any) => it.targetType === "non_agri" && it.landType === code);
-    const plots = matching.reduce((sum: number, it: any) => sum + (it.donePlots || 0), 0);
-    const households = matching.reduce((sum: number, it: any) => sum + (it.doneHouseholds || 0), 0);
+    const plots = matching.reduce((sum: number, it: any) => Number(sum) + Number(it.donePlots || 0), 0);
+    const households = matching.reduce((sum: number, it: any) => Number(sum) + Number(it.doneHouseholds || 0), 0);
     return { plots, households };
   };
 
-  const doneAgriPlots = roundsList.reduce((acc: number, r: any) => acc + getAgriPlots(r), 0);
-  const doneAgriHouseholds = roundsList.reduce((acc: number, r: any) => acc + getAgriHH(r), 0);
-  const doneNonAgriPlots = roundsList.reduce((acc: number, r: any) => acc + getNonAgriPlots(r), 0);
-  const doneNonAgriHouseholds = roundsList.reduce((acc: number, r: any) => acc + getNonAgriHH(r), 0);
-  const doneOrgs = roundsList.reduce((acc: number, r: any) => acc + getOrgsVal(r), 0);
+  const doneAgriPlots = roundsList.reduce((acc: number, r: any) => Number(acc) + Number(getAgriPlots(r)), 0);
+  const doneAgriHouseholds = roundsList.reduce((acc: number, r: any) => Number(acc) + Number(getAgriHH(r)), 0);
+  const doneNonAgriPlots = roundsList.reduce((acc: number, r: any) => Number(acc) + Number(getNonAgriPlots(r)), 0);
+  const doneNonAgriHouseholds = roundsList.reduce((acc: number, r: any) => Number(acc) + Number(getNonAgriHH(r)), 0);
+  const doneOrgs = roundsList.reduce((acc: number, r: any) => Number(acc) + Number(getOrgsVal(r)), 0);
 
   // Dynamic asset types done counts
   const assetDoneParts: string[] = [];
@@ -264,12 +264,12 @@ export const PlanDraftStep: React.FC<PlanDraftStepProps> = ({
   assetItems.forEach((item) => {
     const doneVal = roundsList.reduce((acc: number, r: any) => {
       if (r.items && r.items.length > 0) {
-        return acc + r.items.filter((it: any) => it.targetType === "assets").reduce((asSum: number, it: any) => asSum + (Number(it[item.id]) || Number(it[`done${item.id.charAt(0).toUpperCase()}${item.id.substring(1)}`]) || 0), 0);
+        return acc + r.items.filter((it: any) => it.targetType === "assets").reduce((asSum: number, it: any) => Number(asSum) + Number(Number(it[item.id]) || Number(it[`done${item.id.charAt(0).toUpperCase()}${item.id.substring(1)}`]) || 0), 0);
       }
       const legacyAssetsVal = r.targetType === 'assets' ? 
         (item.id === "graves" ? r.doneGraves : item.id === "assets" ? r.doneAssets : item.id === "structures" ? r.doneStructures : 0) : 0;
       const rVal = r[`asset_${item.id}`] ?? (r[item.id] !== undefined ? r[item.id] : legacyAssetsVal);
-      return acc + (Number(rVal) || 0);
+      return Number(acc) + Number(Number(rVal) || 0);
     }, 0);
 
     const invCountVal = invDoneAssetsMap[item.id] || 0;
@@ -280,7 +280,7 @@ export const PlanDraftStep: React.FC<PlanDraftStepProps> = ({
     }
   });
 
-  const doneAssetHouseholds = roundsList.reduce((acc: number, r: any) => acc + getAssetHH(r), 0);
+  const doneAssetHouseholds = roundsList.reduce((acc: number, r: any) => Number(acc) + Number(getAssetHH(r)), 0);
 
   let assetProgressText = "";
   if (assetDoneParts.length > 0) {
@@ -294,27 +294,29 @@ export const PlanDraftStep: React.FC<PlanDraftStepProps> = ({
 
   // Calculate total compensation amount across all plan_draft rounds
   const totalAmount = roundsList.reduce(
-    (acc: number, r: any) => acc + (r.amount || 0),
+    (acc: number, r: any) => Number(acc) + Number(r.amount || 0),
     0,
   );
 
   return (
-    <div className="flex flex-col gap-4 mt-2 w-full">
+    <div className="flex flex-col gap-5 mt-2 w-full">
       {/* Progress / Summary Dashboard similar to Inventory */}
-      <div className="border border-slate-200 rounded-xl bg-slate-50/50 p-4 space-y-3">
-        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-sans">
-          Tiến độ lập phương án bồi thường
-        </span>
+      <div className="border border-slate-200/80 rounded-2xl bg-white overflow-hidden shadow-xs hover:shadow-sm transition-all duration-300">
+        <div className="px-5 py-4 bg-gradient-to-r from-slate-50 to-slate-100/50 border-b border-slate-100">
+          <span className="text-[12px] font-black text-slate-705 uppercase tracking-wider block font-sans">
+            📊 Tổng quan tiến độ lập phương án bồi thường
+          </span>
+        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-1.5 pl-2 border-l-2 border-blue-400/80">
-            <span className="text-[9.5px] font-black text-slate-400 uppercase block select-none">
-              Đã lập phương án:
+        <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="space-y-2 pl-3 border-l-2 border-blue-500 bg-blue-50/5 p-3 rounded-r-xl">
+            <span className="text-[10px] font-black text-slate-400 uppercase block select-none tracking-wider mb-2">
+              TIẾN ĐỘ THỰC HIỆN THEO ĐẤT KIỂM ĐẾM:
             </span>
 
             {hasInvAgri &&
               (doneAgriPlots > 0 || doneAgriHouseholds > 0 ? (
-                <div className="text-[11.5px] text-slate-755 font-medium flex items-center gap-1.5 flex-wrap font-sans">
+                <div className="text-[12px] text-slate-750 font-medium flex items-center gap-2 flex-wrap font-sans">
                   <span>
                     🌾{" "}
                     <span className="font-semibold text-slate-500">
@@ -329,7 +331,7 @@ export const PlanDraftStep: React.FC<PlanDraftStepProps> = ({
                     </strong>
                   </span>
                   {invDoneAgriHouseholds > 0 && (
-                    <span className="text-blue-600 font-bold text-[10px] bg-blue-50/80 px-1 py-0.5 rounded shadow-sm border border-blue-100/50">
+                    <span className="text-blue-600 font-bold text-[10px] bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">
                       {Math.round(
                         (doneAgriHouseholds /
                           invDoneAgriHouseholds) *
@@ -340,7 +342,7 @@ export const PlanDraftStep: React.FC<PlanDraftStepProps> = ({
                   )}
                 </div>
               ) : (
-                <div className="text-[11.5px] text-slate-400 font-medium font-sans">
+                <div className="text-[12px] text-slate-400 font-medium font-sans">
                   🌾 Chưa lập đợt đất nông nghiệp (Tổng:{" "}
                   {formatCount(invDoneAgriPlots)} thửa (thuộc{" "}
                   {formatCount(invDoneAgriHouseholds)} hộ))
@@ -350,7 +352,7 @@ export const PlanDraftStep: React.FC<PlanDraftStepProps> = ({
             {hasInvNonAgri &&
               (doneNonAgriPlots > 0 ||
               doneNonAgriHouseholds > 0 ? (
-                <div className="text-[11.5px] text-slate-755 font-medium flex items-center gap-1.5 flex-wrap font-sans">
+                <div className="text-[12px] text-slate-755 font-medium flex items-center gap-2 flex-wrap font-sans">
                   <span>
                     🏠{" "}
                     <span className="font-semibold text-slate-500">
@@ -366,7 +368,7 @@ export const PlanDraftStep: React.FC<PlanDraftStepProps> = ({
                     </strong>
                   </span>
                   {invDoneNonAgriHouseholds > 0 && (
-                    <span className="text-blue-600 font-bold text-[10px] bg-blue-50/80 px-1 py-0.5 rounded shadow-sm border border-blue-100/50">
+                    <span className="text-blue-600 font-bold text-[10px] bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">
                       {Math.round(
                         (doneNonAgriHouseholds /
                           invDoneNonAgriHouseholds) *
@@ -377,7 +379,7 @@ export const PlanDraftStep: React.FC<PlanDraftStepProps> = ({
                   )}
                 </div>
               ) : (
-                <div className="text-[11.5px] text-slate-400 font-medium font-sans">
+                <div className="text-[12px] text-slate-400 font-medium font-sans">
                   🏠 Chưa lập đợt đất phi nông nghiệp (Tổng:{" "}
                   {formatCount(invDoneNonAgriPlots)} thửa
                   (thuộc{" "}
@@ -387,7 +389,7 @@ export const PlanDraftStep: React.FC<PlanDraftStepProps> = ({
 
             {hasInvOrg &&
               (doneOrgs > 0 ? (
-                <div className="text-[11.5px] text-slate-755 font-medium flex items-center gap-1.5 flex-wrap font-sans">
+                <div className="text-[12px] text-slate-755 font-medium flex items-center gap-2 flex-wrap font-sans">
                   <span>
                     🏢{" "}
                     <span className="font-semibold text-slate-500">
@@ -399,7 +401,7 @@ export const PlanDraftStep: React.FC<PlanDraftStepProps> = ({
                     </strong>
                   </span>
                   {invDoneOrgs > 0 && (
-                    <span className="text-blue-600 font-bold text-[10px] bg-blue-50/80 px-1 py-0.5 rounded shadow-sm border border-blue-100/50">
+                    <span className="text-blue-600 font-bold text-[10px] bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">
                       {Math.round(
                         (doneOrgs / invDoneOrgs) * 100,
                       )}
@@ -408,7 +410,7 @@ export const PlanDraftStep: React.FC<PlanDraftStepProps> = ({
                   )}
                 </div>
               ) : (
-                <div className="text-[11.5px] text-slate-400 font-medium font-sans">
+                <div className="text-[12px] text-slate-400 font-medium font-sans">
                   🏢 Chưa lập đợt tổ chức (Tổng:{" "}
                   {formatCount(invDoneOrgs)} tổ chức)
                 </div>
@@ -416,7 +418,7 @@ export const PlanDraftStep: React.FC<PlanDraftStepProps> = ({
 
             {hasInvAsset &&
               (assetProgressText ? (
-                <div className="text-[11.5px] text-slate-755 font-medium flex items-center gap-1.5 flex-wrap font-sans">
+                <div className="text-[12px] text-slate-755 font-medium flex items-center gap-2 flex-wrap font-sans">
                   <span>
                     📦{" "}
                     <span className="font-semibold text-slate-500">
@@ -428,7 +430,7 @@ export const PlanDraftStep: React.FC<PlanDraftStepProps> = ({
                   </span>
                   {invDoneAssetHouseholds > 0 &&
                     doneAssetHouseholds > 0 && (
-                      <span className="text-blue-600 font-bold text-[10px] bg-blue-50/80 px-1 py-0.5 rounded shadow-sm border border-blue-100/50">
+                      <span className="text-blue-600 font-bold text-[10px] bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">
                         {Math.round(
                           (doneAssetHouseholds /
                             invDoneAssetHouseholds) *
@@ -439,7 +441,7 @@ export const PlanDraftStep: React.FC<PlanDraftStepProps> = ({
                     )}
                 </div>
               ) : (
-                <div className="text-[11.5px] text-slate-400 font-medium font-sans">
+                <div className="text-[12px] text-slate-400 font-medium font-sans">
                   📦 Chưa lập đợt tài sản (Tổng:{" "}
                   {formatCount(invDoneAssetHouseholds)} hộ)
                 </div>
@@ -449,33 +451,36 @@ export const PlanDraftStep: React.FC<PlanDraftStepProps> = ({
               !hasInvNonAgri &&
               !hasInvOrg &&
               !hasInvAsset && (
-                <div className="text-[11.5px] text-slate-400 italic font-sans animate-pulse">
+                <div className="text-[12px] text-slate-400 italic font-sans animate-pulse">
                   Chưa ghi nhận đối tượng đã kiểm đếm để lập
                   phương án
                 </div>
               )}
           </div>
 
-          <div className="bg-emerald-50/50 rounded-xl p-3.5 border border-emerald-100 flex flex-col justify-between">
-            <span className="text-[10px] font-bold text-emerald-650 uppercase tracking-wide">
-              Tổng số tiền BT, HT cả các đợt
+          {/* Premium Financial Box styled like mockup */}
+          <div className="bg-gradient-to-br from-emerald-500/10 via-emerald-50/10 to-teal-500/5 rounded-2xl p-5 border border-emerald-150 shadow-2xs hover:shadow-xs transition-all duration-300 flex flex-col justify-between">
+            <span className="text-[10px] font-black text-emerald-650 uppercase tracking-widest block mb-2 select-none">
+              💰 TỔNG KINH PHÍ BỒI THƯỜNG DỰ KIẾN (TẤT CẢ CÁC ĐỢT)
             </span>
-            <div className="mt-2 text-xl font-black text-emerald-700 flex items-baseline font-mono">
+            <div className="mt-2 text-2xl font-black text-emerald-700 flex items-baseline font-mono tracking-tight">
               {totalAmount.toLocaleString("vi-VN")}
-              <span className="text-xs font-semibold text-emerald-500 ml-1">
-                đ
+              <span className="text-xs font-semibold text-emerald-500 ml-1.5">
+                VND
               </span>
+            </div>
+            <div className="text-[9.5px] font-medium text-emerald-555 mt-2.5 bg-emerald-500/5 border border-emerald-500/10 py-1 px-2.5 rounded-lg">
+              Số liệu tự động hệ thống hóa từ tất cả các quyết định bồi thường thực tế.
             </div>
           </div>
         </div>
       </div>
 
       {/* Sub-Rounds lists with uniform navigation tabs */}
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-            <Layers className="w-3.5 h-3.5 text-blue-500" />
-            Chi tiết các đợt lập phương án
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2 select-none">
+            <Layers className="w-4 h-4 text-slate-400" /> Chi tiết các đợt lập phương án thực tế
           </span>
           {canEdit && (
             <button
@@ -507,16 +512,16 @@ export const PlanDraftStep: React.FC<PlanDraftStepProps> = ({
                 });
                 setPlanActiveRoundId(newRoundId);
               }}
-              className="text-[10px] font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg border border-blue-200 transition-colors cursor-pointer"
+              className="text-[11px] font-bold text-blue-600 bg-blue-50/85 hover:bg-blue-100/95 px-3.5 py-1.5 rounded-xl border border-blue-200/60 shadow-2xs hover:shadow-xs transition-all duration-250 cursor-pointer select-none flex items-center gap-1"
             >
-              + Thêm đợt lập phương án
+              <Plus className="w-3.5 h-3.5" /> Thêm đợt lập phương án
             </button>
           )}
         </div>
 
-        {/* Round Navigation Tabs matching InventoryStep */}
+        {/* Round Navigation Tabs matching InventoryStep - Premium Pill Container */}
         {roundsList.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 pb-1 border-b border-slate-100/80">
+          <div className="p-1 rounded-2xl bg-slate-100/80 border border-slate-200/50 flex flex-wrap gap-1.5 mb-2 shadow-2xs">
             {roundsList.map((r: any, rIdx: number) => {
               const active = planActiveRoundId === r.id || (rIdx === 0 && !planActiveRoundId);
               return (
@@ -524,15 +529,18 @@ export const PlanDraftStep: React.FC<PlanDraftStepProps> = ({
                   key={r.id || rIdx}
                   onClick={() => setPlanActiveRoundId(r.id)}
                   type="button"
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10.5px] uppercase font-extrabold tracking-wider transition-all border cursor-pointer select-none ${
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[11px] font-bold tracking-wide transition-all duration-250 pointer cursor-pointer select-none ${
                     active
-                      ? "bg-blue-600 border-blue-600 text-white shadow-xs"
-                      : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-700"
+                      ? "bg-white text-blue-600 shadow-sm border border-slate-200/60 ring-1 ring-slate-100"
+                      : "bg-transparent border border-transparent text-slate-500 hover:text-slate-800 hover:bg-white/50"
                   }`}
                 >
-                  <span>🎯 Đợt {rIdx + 1}</span>
+                  <span className={`relative flex h-2 w-2 rounded-full ${active ? "bg-blue-500" : "bg-slate-300"}`}>
+                    {active && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-60"></span>}
+                  </span>
+                  <span>ĐỢT {rIdx + 1}</span>
                   {r.date && (
-                    <span className={`text-[9.5px] font-bold ${active ? "text-blue-100" : "text-slate-400"}`}>
+                    <span className={`text-[9.5px] font-medium font-mono ${active ? "text-blue-500" : "text-slate-400"}`}>
                       ({r.date})
                     </span>
                   )}
@@ -635,7 +643,7 @@ export const PlanDraftStep: React.FC<PlanDraftStepProps> = ({
             return (
               <div
                 key={round.id || idx}
-                className="bg-slate-50 p-4 rounded-xl border border-slate-200/80 shadow-xs flex flex-col gap-3.5"
+                className="bg-white p-5 rounded-2xl border border-slate-200/80 border-l-4 border-l-blue-500 shadow-xs flex flex-col gap-4 animate-in fade-in duration-200"
               >
                 {/* Header of Round Controls with exact visual styling */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-slate-200/60 font-sans">
@@ -723,13 +731,13 @@ export const PlanDraftStep: React.FC<PlanDraftStepProps> = ({
                       return (
                         <div
                           key={item.id || itemIdx}
-                          className="bg-white border border-slate-200/80 rounded-xl p-3 shadow-3xs flex flex-col gap-3"
+                          className="bg-slate-50/45 hover:bg-slate-50/80 border border-slate-200/70 hover:border-slate-350 rounded-2xl p-4.5 shadow-2xs transition-all duration-200 flex flex-col gap-3.5"
                         >
                           {/* Subitem header element */}
-                          <div className="flex flex-wrap items-center justify-between gap-3 pb-1.5 border-b border-dashed border-slate-100">
-                            <div className="flex flex-wrap items-center gap-3.5">
-                              <div className="flex items-center gap-1.5">
-                                <span className="text-[10px] font-extrabold text-slate-400 uppercase whitespace-nowrap">
+                          <div className="flex flex-wrap items-center justify-between gap-3 pb-2 border-b border-dashed border-slate-200/60">
+                            <div className="flex flex-wrap items-center gap-4">
+                              <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider whitespace-nowrap">
                                   Đối tượng:
                                 </span>
 
@@ -755,7 +763,7 @@ export const PlanDraftStep: React.FC<PlanDraftStepProps> = ({
                                     nextRounds[idx] = { ...nextRounds[idx], items: nextItems };
                                     updateStepStatus(project.id, stepKey, { ...planDraftData, rounds: nextRounds });
                                   }}
-                                  className="bg-white border border-slate-200 rounded px-1.5 py-0.5 text-[10.5px] font-bold text-slate-755 outline-none font-sans cursor-pointer h-7"
+                                  className="bg-white border border-slate-200 hover:border-slate-300 focus:border-blue-500 rounded-xl px-2.5 py-1 text-xs font-extrabold text-slate-800 outline-none font-sans shadow-3xs cursor-pointer"
                                 >
                                   {availableTypes.map((t) => (
                                     <option key={t.value} value={t.value}>
@@ -767,8 +775,8 @@ export const PlanDraftStep: React.FC<PlanDraftStepProps> = ({
 
                               {/* Land Type search picker */}
                               {(item.targetType === "agri" || item.targetType === "non_agri") && (
-                                <div className="flex items-center gap-1.5 font-sans">
-                                  <span className="text-[10px] font-extrabold text-slate-400 uppercase whitespace-nowrap">
+                                <div className="flex items-center gap-2 font-sans">
+                                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider whitespace-nowrap">
                                     Loại đất:
                                   </span>
                                   <Combobox
@@ -809,9 +817,9 @@ export const PlanDraftStep: React.FC<PlanDraftStepProps> = ({
                                   nextRounds[idx] = { ...nextRounds[idx], items: nextItems };
                                   updateStepStatus(project.id, stepKey, { ...planDraftData, rounds: nextRounds });
                                 }}
-                                className="text-slate-400 hover:text-red-500 text-[10px] font-bold flex items-center gap-0.5 hover:bg-red-50 px-1 py-0.5 rounded transition-colors"
+                                className="text-xs font-bold text-slate-400 hover:text-red-500 transition-colors flex items-center gap-1 cursor-pointer select-none"
                               >
-                                × Gỡ đối tượng
+                                <span>Gỡ đối tượng</span>
                               </button>
                             )}
                           </div>
@@ -827,8 +835,8 @@ export const PlanDraftStep: React.FC<PlanDraftStepProps> = ({
                                 otherItems.map((ot: any) => ({ ...ot, parentRoundId: round.id }))
                               );
                               const matchingOther = otherItemsList.filter((it: any) => it.targetType === "agri" && it.landType === item.landType);
-                              const sumOtherPlots = matchingOther.reduce((sum: number, it: any) => sum + (it.donePlots || 0), 0);
-                              const sumOtherHH = matchingOther.reduce((sum: number, it: any) => sum + (it.doneHouseholds || 0), 0);
+                              const sumOtherPlots = matchingOther.reduce((sum: number, it: any) => Number(sum) + Number(it.donePlots || 0), 0);
+                              const sumOtherHH = matchingOther.reduce((sum: number, it: any) => Number(sum) + Number(it.doneHouseholds || 0), 0);
 
                               const maxAgriPlotsLeft = Math.max(0, limitAgriPlots - sumOtherPlots);
                               const maxAgriHHLeft = Math.max(0, limitAgriHH - sumOtherHH);
@@ -841,6 +849,7 @@ export const PlanDraftStep: React.FC<PlanDraftStepProps> = ({
                                       readOnly={!canEdit}
                                       className="w-16 h-7 text-center bg-slate-50 border border-slate-200 rounded text-xs font-bold font-mono outline-none focus:border-blue-500"
                                       value={item.donePlots || 0}
+                                      tooltipText={`Còn lại ${maxAgriPlotsLeft} thửa`}
                                       onChange={(val) => {
                                         const nextItems = [...roundItems];
                                         nextItems[itemIdx] = { ...nextItems[itemIdx], donePlots: Math.min(val, maxAgriPlotsLeft) };
@@ -849,7 +858,6 @@ export const PlanDraftStep: React.FC<PlanDraftStepProps> = ({
                                         updateStepStatus(project.id, stepKey, { ...planDraftData, rounds: nextRounds });
                                       }}
                                     />
-                                    <span className="text-[10px] text-slate-400">/ {maxAgriPlotsLeft} thửa còn lại</span>
                                   </div>
                                   <div className="flex items-center gap-1.5 font-sans">
                                     <span className="text-[10px] text-slate-500 font-bold whitespace-nowrap">Số hộ đại diện:</span>
@@ -857,6 +865,7 @@ export const PlanDraftStep: React.FC<PlanDraftStepProps> = ({
                                       readOnly={!canEdit}
                                       className="w-16 h-7 text-center bg-slate-50 border border-slate-200 rounded text-xs font-bold font-mono outline-none focus:border-blue-500"
                                       value={item.doneHouseholds || 0}
+                                      tooltipText={`Còn lại ${maxAgriHHLeft} hộ`}
                                       onChange={(val) => {
                                         const nextItems = [...roundItems];
                                         nextItems[itemIdx] = { ...nextItems[itemIdx], doneHouseholds: Math.min(val, maxAgriHHLeft) };
@@ -865,7 +874,6 @@ export const PlanDraftStep: React.FC<PlanDraftStepProps> = ({
                                         updateStepStatus(project.id, stepKey, { ...planDraftData, rounds: nextRounds });
                                       }}
                                     />
-                                    <span className="text-[10px] text-slate-400">/ {maxAgriHHLeft} hộ còn lại</span>
                                   </div>
                                 </>
                               );
@@ -880,8 +888,8 @@ export const PlanDraftStep: React.FC<PlanDraftStepProps> = ({
                                 otherItems.map((ot: any) => ({ ...ot, parentRoundId: round.id }))
                               );
                               const matchingOther = otherItemsList.filter((it: any) => it.targetType === "non_agri" && it.landType === item.landType);
-                              const sumOtherPlots = matchingOther.reduce((sum: number, it: any) => sum + (it.donePlots || 0), 0);
-                              const sumOtherHH = matchingOther.reduce((sum: number, it: any) => sum + (it.doneHouseholds || 0), 0);
+                              const sumOtherPlots = matchingOther.reduce((sum: number, it: any) => Number(sum) + Number(it.donePlots || 0), 0);
+                              const sumOtherHH = matchingOther.reduce((sum: number, it: any) => Number(sum) + Number(it.doneHouseholds || 0), 0);
 
                               const maxNonAgriPlotsLeft = Math.max(0, limitNonAgriPlots - sumOtherPlots);
                               const maxNonAgriHHLeft = Math.max(0, limitNonAgriHH - sumOtherHH);
@@ -894,6 +902,7 @@ export const PlanDraftStep: React.FC<PlanDraftStepProps> = ({
                                       readOnly={!canEdit}
                                       className="w-16 h-7 text-center bg-slate-50 border border-slate-200 rounded text-xs font-bold font-mono outline-none focus:border-blue-500"
                                       value={item.donePlots || 0}
+                                      tooltipText={`Còn lại ${maxNonAgriPlotsLeft} thửa`}
                                       onChange={(val) => {
                                         const nextItems = [...roundItems];
                                         nextItems[itemIdx] = { ...nextItems[itemIdx], donePlots: Math.min(val, maxNonAgriPlotsLeft) };
@@ -902,7 +911,6 @@ export const PlanDraftStep: React.FC<PlanDraftStepProps> = ({
                                         updateStepStatus(project.id, stepKey, { ...planDraftData, rounds: nextRounds });
                                       }}
                                     />
-                                    <span className="text-[10px] text-slate-400">/ {maxNonAgriPlotsLeft} thửa còn lại</span>
                                   </div>
                                   <div className="flex items-center gap-1.5 font-sans">
                                     <span className="text-[10px] text-slate-500 font-bold whitespace-nowrap">Số hộ đại diện:</span>
@@ -910,6 +918,7 @@ export const PlanDraftStep: React.FC<PlanDraftStepProps> = ({
                                       readOnly={!canEdit}
                                       className="w-16 h-7 text-center bg-slate-50 border border-slate-200 rounded text-xs font-bold font-mono outline-none focus:border-blue-500"
                                       value={item.doneHouseholds || 0}
+                                      tooltipText={`Còn lại ${maxNonAgriHHLeft} hộ`}
                                       onChange={(val) => {
                                         const nextItems = [...roundItems];
                                         nextItems[itemIdx] = { ...nextItems[itemIdx], doneHouseholds: Math.min(val, maxNonAgriHHLeft) };
@@ -918,7 +927,6 @@ export const PlanDraftStep: React.FC<PlanDraftStepProps> = ({
                                         updateStepStatus(project.id, stepKey, { ...planDraftData, rounds: nextRounds });
                                       }}
                                     />
-                                    <span className="text-[10px] text-slate-400">/ {maxNonAgriHHLeft} hộ còn lại</span>
                                   </div>
                                 </>
                               );
@@ -928,7 +936,7 @@ export const PlanDraftStep: React.FC<PlanDraftStepProps> = ({
                               const otherItemsList = getFlattenedPlanDraftRounds(otherRounds).concat(
                                 otherItems.map((ot: any) => ({ ...ot, parentRoundId: round.id }))
                               );
-                              const sumOther = otherItemsList.filter((it: any) => it.targetType === "org").reduce((sum: number, it: any) => sum + (it.doneOrgs || 0), 0);
+                              const sumOther = otherItemsList.filter((it: any) => it.targetType === "org").reduce((sum: number, it: any) => Number(sum) + Number(it.doneOrgs || 0), 0);
                               const maxOrgsLeft = Math.max(0, invDoneOrgs - sumOther);
 
                               return (
@@ -938,6 +946,7 @@ export const PlanDraftStep: React.FC<PlanDraftStepProps> = ({
                                     readOnly={!canEdit}
                                     className="w-16 h-7 text-center bg-slate-50 border border-slate-200 rounded text-xs font-bold font-mono outline-none"
                                     value={item.doneOrgs || 0}
+                                    tooltipText={`Còn lại ${maxOrgsLeft} tổ chức`}
                                     onChange={(val) => {
                                       const nextItems = [...roundItems];
                                       nextItems[itemIdx] = { ...nextItems[itemIdx], doneOrgs: Math.min(val, maxOrgsLeft) };
@@ -946,7 +955,6 @@ export const PlanDraftStep: React.FC<PlanDraftStepProps> = ({
                                       updateStepStatus(project.id, stepKey, { ...planDraftData, rounds: nextRounds });
                                     }}
                                   />
-                                  <span className="text-[10px] text-slate-400">/ {maxOrgsLeft} tổ chức còn lại</span>
                                 </div>
                               );
                             })()}
@@ -955,7 +963,7 @@ export const PlanDraftStep: React.FC<PlanDraftStepProps> = ({
                               const otherItemsList = getFlattenedPlanDraftRounds(otherRounds).concat(
                                 otherItems.map((ot: any) => ({ ...ot, parentRoundId: round.id }))
                               );
-                              const sumOtherHH = otherItemsList.filter((it: any) => it.targetType === "assets").reduce((sum: number, it: any) => sum + (it.doneHouseholds || 0), 0);
+                              const sumOtherHH = otherItemsList.filter((it: any) => it.targetType === "assets").reduce((sum: number, it: any) => Number(sum) + Number(it.doneHouseholds || 0), 0);
                               const maxAssetHHLeft = Math.max(0, invDoneAssetHouseholds - sumOtherHH);
 
                               return (
@@ -966,6 +974,7 @@ export const PlanDraftStep: React.FC<PlanDraftStepProps> = ({
                                       readOnly={!canEdit}
                                       className="w-16 h-7 text-center bg-slate-50 border border-slate-200 rounded text-xs font-bold font-mono outline-none focus:border-blue-500"
                                       value={item.doneHouseholds || 0}
+                                      tooltipText={`Còn lại ${maxAssetHHLeft} hộ`}
                                       onChange={(val) => {
                                         const nextItems = [...roundItems];
                                         nextItems[itemIdx] = { ...nextItems[itemIdx], doneHouseholds: Math.min(val, maxAssetHHLeft) };
@@ -974,27 +983,27 @@ export const PlanDraftStep: React.FC<PlanDraftStepProps> = ({
                                         updateStepStatus(project.id, stepKey, { ...planDraftData, rounds: nextRounds });
                                       }}
                                     />
-                                    <span className="text-[10px] text-slate-400">/ {maxAssetHHLeft} hộ còn lại</span>
                                   </div>
 
-                                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 bg-slate-100 p-2.5 rounded-lg border border-slate-200/50">
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 bg-slate-50/75 p-3.5 rounded-2xl border border-slate-200/60 shadow-3xs">
                                     {assetItems.map((assetConfig) => {
                                       const valInRound = item[assetConfig.id] !== undefined ? item[assetConfig.id] : 0;
                                       const otherAssetRounds = otherItemsList.filter((it: any) => it.targetType === "assets");
                                       const otherAssetSummary = otherAssetRounds.reduce(
-                                        (asSum: number, it: any) => asSum + (Number(it[assetConfig.id]) || Number(it[`done${assetConfig.id.charAt(0).toUpperCase()}${assetConfig.id.substring(1)}`]) || 0),
+                                        (asSum: number, it: any) => Number(asSum) + Number(Number(it[assetConfig.id]) || Number(it[`done${assetConfig.id.charAt(0).toUpperCase()}${assetConfig.id.substring(1)}`]) || 0),
                                         0
                                       );
                                       const maxAssetLeft = Math.max(0, (invDoneAssetsMap[assetConfig.id] || 0) - otherAssetSummary);
 
                                       return (
-                                        <div key={assetConfig.id} className="flex items-center justify-between gap-1 bg-white p-1.5 rounded border border-slate-200/50">
-                                          <span className="text-[9.5px] font-bold text-slate-500 truncate">{assetConfig.label}</span>
+                                        <div key={assetConfig.id} className="flex items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-slate-200 hover:border-slate-350 transition-all duration-200 shadow-3xs">
+                                          <span className="text-[10px] font-bold text-slate-500 truncate">{assetConfig.label}</span>
                                           <div className="flex items-center gap-1.5 shrink-0">
                                             <NumberInput
                                               readOnly={!canEdit}
-                                              className="w-12 h-6 text-center bg-slate-50 border border-slate-200 rounded text-[9.5px] font-bold text-slate-800 outline-none"
+                                              className="w-14 h-7 text-center bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold font-mono outline-none focus:border-blue-500 transition-colors"
                                               value={valInRound}
+                                              tooltipText={`Còn lại ${maxAssetLeft} ${assetConfig.label.toLowerCase()}`}
                                               onChange={(val) => {
                                                 const finalVal = Math.min(val, maxAssetLeft);
                                                 const nextItems = [...roundItems];
@@ -1008,7 +1017,6 @@ export const PlanDraftStep: React.FC<PlanDraftStepProps> = ({
                                                 updateStepStatus(project.id, stepKey, { ...planDraftData, rounds: nextRounds });
                                               }}
                                             />
-                                            <span className="text-[9px] text-slate-400">/ {maxAssetLeft}</span>
                                           </div>
                                         </div>
                                       );

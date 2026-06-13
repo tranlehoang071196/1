@@ -137,6 +137,55 @@ export const CustomDatePicker = ({ value, onChange, readOnly }: CustomDatePicker
     }
   };
 
+  const handleBlur = () => {
+    let text = inputValue.trim();
+    if (text === '') {
+      onChange('');
+      return;
+    }
+
+    // Match only day and month, e.g. "12/06", "5/3" or "12/06/"
+    const dmMatch = text.match(/^(\d{1,2})\/(\d{1,2})\/?$/);
+    if (dmMatch) {
+      const currentYear = new Date().getFullYear();
+      const d = String(parseInt(dmMatch[1], 10)).padStart(2, '0');
+      const m = String(parseInt(dmMatch[2], 10)).padStart(2, '0');
+      text = `${d}/${m}/${currentYear}`;
+      setInputValue(text);
+    } else {
+      // Also format full dates that lack leading zeroes, e.g. "5/3/2026" -> "05/03/2026"
+      const dmyMatch = text.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+      if (dmyMatch) {
+        const d = String(parseInt(dmyMatch[1], 10)).padStart(2, '0');
+        const m = String(parseInt(dmyMatch[2], 10)).padStart(2, '0');
+        const y = dmyMatch[3];
+        text = `${d}/${m}/${y}`;
+        setInputValue(text);
+      }
+    }
+
+    const parts = text.split('/');
+    if (parts.length === 3) {
+      const d = parseInt(parts[0], 10);
+      const m = parseInt(parts[1], 10);
+      const y = parseInt(parts[2], 10);
+      const date = new Date(y, m - 1, d);
+      if (!isNaN(date.getTime()) && date.getFullYear() === y && date.getMonth() === m - 1 && date.getDate() === d) {
+        if (isFutureDate(parts[0], parts[1], parts[2])) {
+          toast.error('Không thể chọn ngày trong tương lai');
+          setInputValue(value || '');
+          onChange(value || '');
+          return;
+        }
+        onChange(text);
+        return;
+      }
+    }
+
+    // In case of invalid formats, sync back to original prop
+    setInputValue(value || '');
+  };
+
   return (
     <div className="relative inline-flex items-center group font-sans">
       <div className="relative flex items-center">
@@ -145,6 +194,12 @@ export const CustomDatePicker = ({ value, onChange, readOnly }: CustomDatePicker
           placeholder="dd/mm/yyyy"
           value={inputValue}
           onChange={handleTextChange}
+          onBlur={handleBlur}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              (e.target as HTMLInputElement).blur();
+            }
+          }}
           readOnly={readOnly}
           className={cn(
             "w-24 px-1.5 py-0.5 border border-slate-200 rounded text-[10px] font-semibold outline-none transition-all placeholder:font-normal placeholder:text-slate-300 pr-5",
@@ -212,6 +267,7 @@ interface NumberInputProps {
   placeholder?: string;
   min?: number;
   max?: number;
+  tooltipText?: string;
 }
 
 export const NumberInput = ({
@@ -221,15 +277,18 @@ export const NumberInput = ({
   className,
   placeholder,
   min = 0,
-  max
+  max,
+  tooltipText
 }: NumberInputProps) => {
   const [localValue, setLocalValue] = useState(String(value || 0));
+  const [isFocused, setIsFocused] = useState(false);
 
   useEffect(() => {
     setLocalValue(String(value || 0));
   }, [value]);
 
   const handleBlur = () => {
+    setIsFocused(false);
     let numVal = localValue === '' ? min : Number(localValue);
     if (!isNaN(numVal)) {
       if (max !== undefined) {
@@ -251,7 +310,10 @@ export const NumberInput = ({
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const text = e.target.value;
+    let text = e.target.value;
+    if (min >= 0) {
+      text = text.replace(/-/g, '');
+    }
     if (text === '') {
       setLocalValue('');
       return;
@@ -268,19 +330,30 @@ export const NumberInput = ({
   };
 
   return (
-    <input
-      type="number"
-      readOnly={readOnly}
-      className={className}
-      placeholder={placeholder}
-      value={localValue}
-      min={min}
-      max={max}
-      onChange={handleChange}
-      onBlur={handleBlur}
-      onKeyDown={handleKeyDown}
-      onClick={(e) => e.stopPropagation()}
-    />
+    <div className="relative inline-block">
+      <input
+        type="number"
+        readOnly={readOnly}
+        className={className}
+        placeholder={placeholder}
+        value={localValue}
+        min={min}
+        max={max}
+        onChange={handleChange}
+        onFocus={() => setIsFocused(true)}
+        onBlur={handleBlur}
+        onKeyDown={handleKeyDown}
+        onClick={(e) => e.stopPropagation()}
+      />
+      {isFocused && tooltipText && (
+        <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 z-50 px-2.5 py-1 text-[11px] font-semibold text-white bg-slate-900 rounded-lg shadow-lg whitespace-nowrap pointer-events-none border border-slate-700/60 animate-in fade-in slide-in-from-bottom-1 duration-150">
+          <div className="relative flex items-center justify-center">
+            {tooltipText}
+            <div className="absolute top-full left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-slate-900 rotate-45 border-r border-b border-slate-700/60 -mt-1" />
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 

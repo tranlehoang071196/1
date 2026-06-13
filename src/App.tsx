@@ -26,6 +26,30 @@ import { useDebounce } from './lib/hooks';
 import { useFuseSearch } from './hooks/useFuseSearch';
 import { collection, query, onSnapshot, addDoc, serverTimestamp, orderBy, doc, getDoc, limit } from 'firebase/firestore';
 
+const safeToMillis = (ts: any): number => {
+  if (!ts) return 0;
+  if (typeof ts.toMillis === 'function') {
+    return ts.toMillis();
+  }
+  if (typeof ts.toDate === 'function') {
+    return ts.toDate().getTime();
+  }
+  if (ts instanceof Date) {
+    return ts.getTime();
+  }
+  if (typeof ts === 'number') {
+    return ts;
+  }
+  if (typeof ts === 'string') {
+    const parsed = Date.parse(ts);
+    return isNaN(parsed) ? 0 : parsed;
+  }
+  if (ts.seconds !== undefined) {
+    return ts.seconds * 1000 + (ts.nanoseconds || 0) / 1000000;
+  }
+  return 0;
+};
+
 const checkInventoryCompleted = (invStep: any) => {
   if (!invStep) return false;
   if (invStep.status === 'completed') return true;
@@ -112,9 +136,14 @@ export default function App() {
   const [globalUserRolesMap, setGlobalUserRolesMap] = useState<Record<string, string>>({});
 
   const fetchGlobalUsers = async () => {
+    if (userRole !== 'admin') {
+      setGlobalAvailableUsers([]);
+      setGlobalUserRolesMap({});
+      return;
+    }
     try {
-      const { getDocs, collection } = await import('firebase/firestore');
-      const snapshot = await getDocs(collection(db, 'authorized_emails'));
+      const { getDocs, collection, query, limit } = await import('firebase/firestore');
+      const snapshot = await getDocs(query(collection(db, 'authorized_emails'), limit(100)));
       const roles: Record<string, string> = {};
       const list: any[] = [];
       snapshot.docs.forEach(doc => {
@@ -131,13 +160,13 @@ export default function App() {
   };
 
   useEffect(() => {
-    if (user) {
+    if (user && userRole === 'admin') {
       fetchGlobalUsers();
-    } else {
+    } else if (!user) {
       setGlobalAvailableUsers([]);
       setGlobalUserRolesMap({});
     }
-  }, [user]);
+  }, [user, userRole]);
 
   const handleGoogleSignIn = async () => {
     setAuthError(false as any); // Reset to null or empty
@@ -196,8 +225,9 @@ export default function App() {
         const email = firebaseUser.email?.toLowerCase();
         setUser(firebaseUser);
         
-        const adminEmail = import.meta.env.VITE_ADMIN_EMAIL;
-        const isMasterAdmin = email === 'kingofhero241@gmail.com' || email === 'tranlehoang.071196@gmail.com' || (adminEmail && email === adminEmail.toLowerCase());
+        const adminEmailVar = import.meta.env.VITE_ADMIN_EMAIL || '';
+        const adminEmails = adminEmailVar.toLowerCase().split(',').map((e: string) => e.trim()).filter(Boolean);
+        const isMasterAdmin = email ? adminEmails.includes(email) : false;
         if (isMasterAdmin) {
           try {
             const { setDoc } = await import('firebase/firestore');
@@ -395,18 +425,18 @@ export default function App() {
      
      result.sort((a, b) => {
        if (sortOrder === 'newest') {
-         const timeA = a.createdAt?.toMillis() || 0;
-         const timeB = b.createdAt?.toMillis() || 0;
-         return timeB - timeA;
-       } else if (sortOrder === 'oldest') {
-         const timeA = a.createdAt?.toMillis() || 0;
-         const timeB = b.createdAt?.toMillis() || 0;
-         return timeA - timeB;
-       } else if (sortOrder === 'recently_updated') {
-         const timeA = Math.max(a.updatedAt?.toMillis() || 0, a.createdAt?.toMillis() || 0);
-         const timeB = Math.max(b.updatedAt?.toMillis() || 0, b.createdAt?.toMillis() || 0);
-         return timeB - timeA;
-       }
+          const timeA = safeToMillis(a.createdAt);
+          const timeB = safeToMillis(b.createdAt);
+          return timeB - timeA;
+        } else if (sortOrder === 'oldest') {
+          const timeA = safeToMillis(a.createdAt);
+          const timeB = safeToMillis(b.createdAt);
+          return timeA - timeB;
+        } else if (sortOrder === 'recently_updated') {
+          const timeA = Math.max(safeToMillis(a.updatedAt), safeToMillis(a.createdAt));
+          const timeB = Math.max(safeToMillis(b.updatedAt), safeToMillis(b.createdAt));
+          return timeB - timeA;
+        }
        return 0;
      });
      

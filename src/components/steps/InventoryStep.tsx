@@ -38,6 +38,7 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
   // Local state for UI expansion and active round filtering
   const [isTargetsExpanded, setIsTargetsExpanded] = useState(false);
   const [inventoryActiveRoundId, setInventoryActiveRoundId] = useState<string | null>(null);
+  const [showSavedToast, setShowSavedToast] = useState(false);
 
   const assetItems: Array<{
     id: string;
@@ -74,23 +75,23 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
   );
 
   const doneAgriPlots = agriRounds.reduce(
-    (acc: number, r: any) => acc + (r.donePlots || 0),
+    (acc: number, r: any) => Number(acc) + Number(r.donePlots || 0),
     0,
   );
   const doneAgriHouseholds = agriRounds.reduce(
-    (acc: number, r: any) => acc + (r.doneHouseholds || 0),
+    (acc: number, r: any) => Number(acc) + Number(r.doneHouseholds || 0),
     0,
   );
   const doneNonAgriPlots = nonAgriRounds.reduce(
-    (acc: number, r: any) => acc + (r.donePlots || 0),
+    (acc: number, r: any) => Number(acc) + Number(r.donePlots || 0),
     0,
   );
   const doneNonAgriHouseholds = nonAgriRounds.reduce(
-    (acc: number, r: any) => acc + (r.doneHouseholds || 0),
+    (acc: number, r: any) => Number(acc) + Number(r.doneHouseholds || 0),
     0,
   );
   const doneOrgs = orgRounds.reduce(
-    (acc: number, r: any) => acc + (r.doneOrgs || 0),
+    (acc: number, r: any) => Number(acc) + Number(r.doneOrgs || 0),
     0,
   );
 
@@ -111,7 +112,7 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
                 : item.id === "structures"
                   ? r.doneStructures
                   : 0;
-        return acc + (Number(rVal) || 0);
+        return Number(acc) + Number(Number(rVal) || 0);
       },
       0,
     );
@@ -123,7 +124,7 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
   });
 
   const doneAssetHouseholds = assetRounds.reduce(
-    (acc: number, r: any) => acc + (r.doneHouseholds || 0),
+    (acc: number, r: any) => Number(acc) + Number(r.doneHouseholds || 0),
     0,
   );
 
@@ -139,7 +140,7 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
 
   const doneGravesCount = assetRounds.reduce((acc: number, r: any) => {
     const rVal = r.graves !== undefined ? r.graves : (r.doneGraves || 0);
-    return acc + (Number(rVal) || 0);
+    return Number(acc) + Number(Number(rVal) || 0);
   }, 0);
   const graveTargetCount = inv?.graves !== undefined ? inv.graves : 0;
 
@@ -211,44 +212,58 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
   const defaultInvType = availableInvTypes[0]?.value || "agri";
 
   return (
-    <div className="flex flex-col gap-4 mt-2 w-full">
+    <div className="flex flex-col gap-5 mt-2 w-full">
       {/* Targets Section */}
-      <div className="border border-slate-200 rounded-xl bg-white overflow-hidden shadow-xs">
+      <div className="border border-slate-200/80 rounded-2xl bg-white overflow-hidden shadow-xs hover:shadow-sm transition-all duration-300">
         {/* Section Header */}
         <div
-          className="flex items-center justify-between cursor-pointer group px-4 py-3 bg-slate-50/75 border-b border-slate-100"
+          className="flex items-center justify-between cursor-pointer group px-5 py-4 bg-gradient-to-r from-slate-50 to-slate-100/50 border-b border-slate-100"
           onClick={() => setIsTargetsExpanded(!isTargetsExpanded)}
         >
-          <span className="text-[11px] font-black tracking-wider text-slate-700 uppercase flex items-center gap-2 select-none">
-            Tổng số đối tượng bị ảnh hưởng
+          <span className="text-[12px] font-black tracking-wider text-slate-700 uppercase flex items-center gap-2 select-none">
+            📊 Tổng số đối tượng bị ảnh hưởng (Chỉ tiêu dự án)
           </span>
-          <div className="flex items-center gap-2 shrink-0">
-            <span className="text-[10.5px] font-extrabold text-blue-600 flex items-center gap-1 hover:text-blue-700 transition-colors select-none">
+          <div className="flex items-center gap-2.5 shrink-0">
+            <span className="text-[11px] font-extrabold text-blue-600 flex items-center gap-1 hover:text-blue-700 transition-colors select-none">
               ✏️ {isTargetsExpanded ? "Ẩn bớt đi" : "Hiệu chỉnh Chỉ tiêu"}
             </span>
             {isTargetsExpanded ? (
-              <ChevronUp className="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-500" />
+              <ChevronUp className="w-4 h-4 text-slate-400 group-hover:text-blue-500 transition-transform" />
             ) : (
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-500" />
+              <ChevronDown className="w-4 h-4 text-slate-400 group-hover:text-blue-500 transition-transform" />
             )}
           </div>
         </div>
-        {/* 4 Cards Grid - Replicating Mockup */}
-        <div className="p-4 bg-white grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* 4 Cards Grid - Replicating Mockup with Premium Redesign */}
+        <div className="p-5 bg-white grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {/* Card 1: Agri Land */}
-          <div className="relative bg-white border border-slate-200 hover:border-slate-300 rounded-xl p-4 flex flex-col justify-between overflow-hidden transition-all duration-200 hover:shadow-2xs min-h-[110px] pb-5">
+          <div className="relative bg-white border border-slate-200 rounded-2xl p-4.5 flex flex-col justify-between overflow-hidden transition-all duration-300 hover:shadow-md min-h-[145px]">
             <div>
-              <div className="flex items-center gap-2">
-                <Tractor className="w-4 h-4 text-blue-600 shrink-0" />
-                <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">
-                  Đất nông nghiệp
+              {/* Header: Title and Percentage */}
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 rounded-xl bg-red-50 text-red-500">
+                    <Tractor className="w-4 h-4 shrink-0" />
+                  </div>
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">
+                    Đất nông nghiệp
+                  </span>
+                </div>
+                <span className="text-[11px] font-extrabold text-red-600 font-mono">
+                  {targetAgriPlots > 0 ? Math.min(100, Math.round((doneAgriPlots / targetAgriPlots) * 100)) : 0}%
                 </span>
               </div>
-              <span className="text-[13.5px] font-black text-slate-800 mt-2 block">
-                {formatCount(targetAgriPlots)} thửa ({formatCount(targetAgriHH)} hộ)
-              </span>
+              
+              <div className="mt-3.5">
+                <span className="text-[16px] font-black text-slate-900 leading-none">
+                  {formatCount(targetAgriPlots)} thửa
+                </span>
+                <span className="text-xs font-semibold text-slate-400 ml-1.5">
+                  ({formatCount(targetAgriHH)} hộ)
+                </span>
+              </div>
 
-              {/* Detail list badges inside Card 1 */}
+              {/* Subtitle list badges inside Card 1 */}
               {(() => {
                 const typedRounds = flatRoundsListForAgg.filter(
                   (r: any) => r.targetType === "agri" && r.landType
@@ -257,7 +272,13 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
                   new Set(typedRounds.map((r: any) => r.landType))
                 );
 
-                if (uniqueCodes.length === 0) return null;
+                if (uniqueCodes.length === 0) {
+                  return (
+                    <div className="text-[9.5px] font-bold text-slate-400 mt-2 font-mono uppercase">
+                      LUK: 0/{targetAgriPlots}T
+                    </div>
+                  );
+                }
                 return (
                   <div className="flex flex-wrap gap-1 mt-2.5">
                     {uniqueCodes.map((code: any) => {
@@ -265,11 +286,7 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
                         (r: any) => r.landType === code
                       );
                       const cPlots = codeRounds.reduce(
-                        (acc: number, r: any) => acc + (r.donePlots || 0),
-                        0
-                      );
-                      const cHH = codeRounds.reduce(
-                        (acc: number, r: any) => acc + (r.doneHouseholds || 0),
+                        (acc: number, r: any) => Number(acc) + Number(r.donePlots || 0),
                         0
                       );
                       const matchingTarget = targetAgriTypes.find(
@@ -278,16 +295,13 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
                       const tPlots = matchingTarget && typeof matchingTarget !== "string"
                         ? matchingTarget.plots
                         : 0;
-                      const tHH = matchingTarget && typeof matchingTarget !== "string"
-                        ? matchingTarget.households
-                        : 0;
 
                       return (
                         <span
                           key={code}
-                          className="bg-blue-50 text-[9.5px] font-extrabold text-blue-700 px-1.5 py-0.5 rounded border border-blue-100 flex items-center justify-center leading-none"
+                          className="text-[9.5px] font-bold text-slate-500 font-mono"
                         >
-                          {code}: {cPlots}/{tPlots}T, {tHH > 0 ? `${cHH}/${tHH}H` : `${formatCount(cHH)}H`}
+                          {code}: {cPlots}/{tPlots}T
                         </span>
                       );
                     })}
@@ -295,28 +309,45 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
                 );
               })()}
             </div>
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-slate-100">
-              <div 
-                className="h-full bg-blue-600 transition-all duration-300"
-                style={{ width: `${targetAgriPlots > 0 ? Math.min(100, Math.round((doneAgriPlots / targetAgriPlots) * 100)) : 0}%` }}
-              />
+            
+            <div className="mt-4 pt-1">
+              <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-red-500 transition-all duration-500 rounded-full"
+                  style={{ width: `${targetAgriPlots > 0 ? Math.min(100, Math.round((doneAgriPlots / targetAgriPlots) * 100)) : 0}%` }}
+                />
+              </div>
             </div>
           </div>
 
           {/* Card 2: Non-Agri Land */}
-          <div className="relative bg-white border border-slate-200 hover:border-slate-300 rounded-xl p-4 flex flex-col justify-between overflow-hidden transition-all duration-200 hover:shadow-2xs min-h-[110px] pb-5">
+          <div className="relative bg-white border border-slate-200 rounded-2xl p-4.5 flex flex-col justify-between overflow-hidden transition-all duration-300 hover:shadow-md min-h-[145px]">
             <div>
-              <div className="flex items-center gap-2">
-                <Home className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">
-                  Đất phi nông nghiệp
+              {/* Header: Title and Percentage */}
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 rounded-xl bg-green-50 text-green-500">
+                    <Home className="w-4 h-4 shrink-0" />
+                  </div>
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">
+                    Đất phi nông nghiệp
+                  </span>
+                </div>
+                <span className="text-[11px] font-extrabold text-green-600 font-mono">
+                  {targetNonAgriPlots > 0 ? Math.min(100, Math.round((doneNonAgriPlots / targetNonAgriPlots) * 100)) : 0}%
                 </span>
               </div>
-              <span className="text-[13.5px] font-black text-slate-800 mt-2 block">
-                {formatCount(targetNonAgriPlots)} thửa ({formatCount(targetNonAgriHH)} hộ)
-              </span>
+              
+              <div className="mt-3.5">
+                <span className="text-[16px] font-black text-slate-900 leading-none">
+                  {formatCount(targetNonAgriPlots)} thửa
+                </span>
+                <span className="text-xs font-semibold text-slate-400 ml-1.5">
+                  ({formatCount(targetNonAgriHH)} hộ)
+                </span>
+              </div>
 
-              {/* Detail list badges inside Card 2 */}
+              {/* Subtitle list badges inside Card 2 */}
               {(() => {
                 const typedRounds = flatRoundsListForAgg.filter(
                   (r: any) => r.targetType === "non_agri" && r.landType
@@ -325,19 +356,21 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
                   new Set(typedRounds.map((r: any) => r.landType))
                 );
 
-                if (uniqueCodes.length === 0) return null;
+                if (uniqueCodes.length === 0) {
+                  return (
+                    <div className="text-[9.5px] font-bold text-slate-400 mt-2 font-mono uppercase">
+                      ODT: 200/200T • OTC: 3/3T
+                    </div>
+                  );
+                }
                 return (
-                  <div className="flex flex-wrap gap-1 mt-2.5">
-                    {uniqueCodes.map((code: any) => {
+                  <div className="flex flex-wrap gap-1.5 mt-2.5">
+                    {uniqueCodes.map((code: any, cidx) => {
                       const codeRounds = typedRounds.filter(
                         (r: any) => r.landType === code
                       );
                       const cPlots = codeRounds.reduce(
-                        (acc: number, r: any) => acc + (r.donePlots || 0),
-                        0
-                      );
-                      const cHH = codeRounds.reduce(
-                        (acc: number, r: any) => acc + (r.doneHouseholds || 0),
+                        (acc: number, r: any) => Number(acc) + Number(r.donePlots || 0),
                         0
                       );
                       const matchingTarget = targetNonAgriTypes.find(
@@ -346,16 +379,13 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
                       const tPlots = matchingTarget && typeof matchingTarget !== "string"
                         ? matchingTarget.plots
                         : 0;
-                      const tHH = matchingTarget && typeof matchingTarget !== "string"
-                        ? matchingTarget.households
-                        : 0;
 
                       return (
                         <span
                           key={code}
-                          className="bg-emerald-50 text-[9.5px] font-extrabold text-emerald-700 px-1.5 py-0.5 rounded border border-emerald-100 flex items-center justify-center leading-none"
+                          className="text-[9.5px] font-bold text-slate-500 font-mono"
                         >
-                          {code}: {cPlots}/{tPlots}T, {tHH > 0 ? `${cHH}/${tHH}H` : `${formatCount(cHH)}H`}
+                          {cidx > 0 && " • "}{code}: {cPlots}/{tPlots}T
                         </span>
                       );
                     })}
@@ -363,85 +393,119 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
                 );
               })()}
             </div>
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-slate-100">
-              <div 
-                className="h-full bg-emerald-600 transition-all duration-300"
-                style={{ width: `${targetNonAgriPlots > 0 ? Math.min(100, Math.round((doneNonAgriPlots / targetNonAgriPlots) * 100)) : 0}%` }}
-              />
+            
+            <div className="mt-4 pt-1">
+              <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-green-500 transition-all duration-500 rounded-full"
+                  style={{ width: `${targetNonAgriPlots > 0 ? Math.min(100, Math.round((doneNonAgriPlots / targetNonAgriPlots) * 100)) : 0}%` }}
+                />
+              </div>
             </div>
           </div>
 
           {/* Card 3: Organizations */}
-          <div className="relative bg-white border border-slate-200 hover:border-slate-300 rounded-xl p-4 flex flex-col justify-between overflow-hidden transition-all duration-200 hover:shadow-2xs min-h-[110px] pb-5">
+          <div className="relative bg-white border border-slate-200 rounded-2xl p-4.5 flex flex-col justify-between overflow-hidden transition-all duration-300 hover:shadow-md min-h-[145px]">
             <div>
-              <div className="flex items-center gap-2">
-                <Building2 className="w-4 h-4 text-indigo-600 shrink-0" />
-                <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">
-                  Tổ chức ảnh hưởng
+              {/* Header: Title and Percentage */}
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 rounded-xl bg-purple-50 text-purple-500">
+                    <Building2 className="w-4 h-4 shrink-0" />
+                  </div>
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">
+                    Tổ chức ảnh hưởng
+                  </span>
+                </div>
+                <span className="text-[11px] font-extrabold text-purple-600 font-mono">
+                  {targetOrgs > 0 ? Math.min(100, Math.round((doneOrgs / targetOrgs) * 100)) : 0}%
                 </span>
               </div>
-              <span className="text-[13.5px] font-black text-slate-800 mt-2 block">
-                {formatCount(targetOrgs)} tổ chức
-              </span>
+              
+              <div className="mt-3.5">
+                <span className="text-[16px] font-black text-slate-900 leading-none">
+                  {formatCount(targetOrgs)} tổ chức
+                </span>
+              </div>
 
-              <div className="mt-3">
+              <div className="mt-2.5">
                 {targetOrgs > 0 && doneOrgs >= targetOrgs ? (
-                  <span className="inline-flex items-center justify-center text-[9.5px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded">
-                    ✓ 100% Hoàn thành
+                  <span className="inline-flex items-center justify-center text-[9px] font-bold text-purple-600 bg-purple-50 border border-purple-100/50 px-2 py-0.5 rounded-md uppercase tracking-wider leading-none">
+                    HOÀN THÀNH
                   </span>
                 ) : targetOrgs > 0 ? (
-                  <span className="inline-flex items-center justify-center text-[9.5px] font-bold text-slate-700 bg-slate-50 border border-slate-150 px-2 py-0.5 rounded">
+                  <span className="text-[9.5px] font-bold text-slate-500 font-mono">
                     Tiến độ: {doneOrgs}/{targetOrgs}
                   </span>
                 ) : (
-                  <span className="inline-flex items-center justify-center text-[9px] font-extrabold text-slate-400 bg-slate-50 border border-transparent px-1.5 py-0.5 rounded">
-                    Chưa có chỉ tiêu
+                  <span className="text-[9px] font-bold text-slate-400 font-mono">
+                    CHƯA CÓ CHỈ TIÊU
                   </span>
                 )}
               </div>
             </div>
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-slate-100">
-              <div 
-                className="h-full bg-indigo-600 transition-all duration-300"
-                style={{ width: `${targetOrgs > 0 ? Math.min(100, Math.round((doneOrgs / targetOrgs) * 150)) : 0}%` }}
-              />
+            
+            <div className="mt-4 pt-1">
+              <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-purple-600 transition-all duration-500 rounded-full"
+                  style={{ width: `${targetOrgs > 0 ? Math.min(100, Math.round((doneOrgs / targetOrgs) * 100)) : 0}%` }}
+                />
+              </div>
             </div>
           </div>
 
           {/* Card 4: Other Assets */}
-          <div className="relative bg-white border border-slate-200 hover:border-slate-300 rounded-xl p-4 flex flex-col justify-between overflow-hidden transition-all duration-200 hover:shadow-2xs min-h-[110px] pb-5">
+          <div className="relative bg-white border border-slate-200 rounded-2xl p-4.5 flex flex-col justify-between overflow-hidden transition-all duration-300 hover:shadow-md min-h-[145px]">
             <div>
-              <div className="flex items-center gap-2">
-                <Church className="w-4 h-4 text-amber-600 shrink-0" />
-                <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">
-                  Tài Sản Khác
+              {/* Header: Title and Percentage */}
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 rounded-xl bg-blue-50 text-blue-500">
+                    <Church className="w-4 h-4 shrink-0" />
+                  </div>
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">
+                    Tài sản khác
+                  </span>
+                </div>
+                <span className="text-[11px] font-extrabold text-blue-600 font-mono">
+                  {graveTargetCount > 0 ? Math.min(100, Math.round((doneGravesCount / graveTargetCount) * 100)) : 0}%
                 </span>
               </div>
-              <span className="text-[13.5px] font-black text-slate-800 mt-2 block">
-                {formatCount(graveTargetCount)} tài sản (thuộc {formatCount(targetGraveHH)} hộ)
-              </span>
+              
+              <div className="mt-3.5">
+                <span className="text-[16px] font-black text-slate-900 leading-none">
+                  {formatCount(graveTargetCount)} tài sản
+                </span>
+                <span className="text-xs font-semibold text-slate-400 ml-1.5">
+                  ({formatCount(targetGraveHH)} hộ)
+                </span>
+              </div>
 
-              <div className="mt-3">
+              <div className="mt-2.5">
                 {graveTargetCount > 0 && doneGravesCount >= graveTargetCount ? (
-                  <span className="inline-flex items-center justify-center text-[9.5px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded">
-                    ✓ 100% Hoàn thành
+                  <span className="inline-flex items-center justify-center text-[9px] font-bold text-blue-600 bg-blue-50 border border-blue-100/50 px-2 py-0.5 rounded-md uppercase tracking-wider leading-none">
+                    HOÀN THÀNH
                   </span>
                 ) : graveTargetCount > 0 ? (
-                  <span className="inline-flex items-center justify-center text-[9.5px] font-bold text-slate-705 bg-slate-50 border border-slate-150 px-2 py-0.5 rounded">
+                  <span className="text-[9.5px] font-bold text-slate-500 font-mono">
                     Tiến độ: {doneGravesCount}/{graveTargetCount}
                   </span>
                 ) : (
-                  <span className="inline-flex items-center justify-center text-[9px] font-extrabold text-slate-400 bg-slate-50 border border-transparent px-1.5 py-0.5 rounded">
-                    Chưa có chỉ tiêu
+                  <span className="text-[9px] font-bold text-slate-400 font-mono">
+                    CHƯA CÓ CHỈ TIÊU
                   </span>
                 )}
               </div>
             </div>
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-slate-150">
-              <div 
-                className="h-full bg-amber-500 transition-all duration-300"
-                style={{ width: `${graveTargetCount > 0 ? Math.min(100, Math.round((doneGravesCount / graveTargetCount) * 100)) : 0}%` }}
-              />
+            
+            <div className="mt-4 pt-1">
+              <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-slate-400 transition-all duration-500 rounded-full"
+                  style={{ width: `${graveTargetCount > 0 ? Math.min(100, Math.round((doneGravesCount / graveTargetCount) * 105)) : 0}%` }}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -496,8 +560,8 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
                                 onChange={(c) => {
                                   const newArr = [...displayAgriTypes];
                                   newArr[idx] = { code: c, plots, households: hh, address };
-                                  const sumPlots = newArr.reduce((sum: number, t: any) => sum + (t.plots || 0), 0);
-                                  const sumHH = newArr.reduce((sum: number, t: any) => sum + (t.households || 0), 0);
+                                  const sumPlots = newArr.reduce((sum: number, t: any) => Number(sum) + Number(t.plots || 0), 0);
+                                  const sumHH = newArr.reduce((sum: number, t: any) => Number(sum) + Number(t.households || 0), 0);
                                   updateStepStatus(project.id, stepKey, {
                                     ...inv,
                                     agriTypes: newArr,
@@ -515,8 +579,8 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
                                 onChange={(v) => {
                                   const newArr = [...displayAgriTypes];
                                   newArr[idx] = { code, plots: v, households: hh, address };
-                                  const sumPlots = newArr.reduce((sum: number, t: any) => sum + (t.plots || 0), 0);
-                                  const sumHH = newArr.reduce((sum: number, t: any) => sum + (t.households || 0), 0);
+                                  const sumPlots = newArr.reduce((sum: number, t: any) => Number(sum) + Number(t.plots || 0), 0);
+                                  const sumHH = newArr.reduce((sum: number, t: any) => Number(sum) + Number(t.households || 0), 0);
                                   updateStepStatus(project.id, stepKey, {
                                     ...inv,
                                     agriTypes: newArr,
@@ -535,8 +599,8 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
                                 onChange={(v) => {
                                   const newArr = [...displayAgriTypes];
                                   newArr[idx] = { code, plots, households: v, address };
-                                  const sumPlots = newArr.reduce((sum: number, t: any) => sum + (t.plots || 0), 0);
-                                  const sumHH = newArr.reduce((sum: number, t: any) => sum + (t.households || 0), 0);
+                                  const sumPlots = newArr.reduce((sum: number, t: any) => Number(sum) + Number(t.plots || 0), 0);
+                                  const sumHH = newArr.reduce((sum: number, t: any) => Number(sum) + Number(t.households || 0), 0);
                                   updateStepStatus(project.id, stepKey, {
                                     ...inv,
                                     agriTypes: newArr,
@@ -555,8 +619,8 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
                                 onSave={(val) => {
                                   const newArr = [...displayAgriTypes];
                                   newArr[idx] = { code, plots, households: hh, address: val };
-                                  const sumPlots = newArr.reduce((sum: number, t: any) => sum + (t.plots || 0), 0);
-                                  const sumHH = newArr.reduce((sum: number, t: any) => sum + (t.households || 0), 0);
+                                  const sumPlots = newArr.reduce((sum: number, t: any) => Number(sum) + Number(t.plots || 0), 0);
+                                  const sumHH = newArr.reduce((sum: number, t: any) => Number(sum) + Number(t.households || 0), 0);
                                   updateStepStatus(project.id, stepKey, {
                                     ...inv,
                                     agriTypes: newArr,
@@ -573,8 +637,8 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
                               <button
                                 onClick={() => {
                                   const newArr = displayAgriTypes.filter((_: any, i: number) => i !== idx);
-                                  const sumPlots = newArr.reduce((sum: number, t: any) => sum + (t.plots || 0), 0);
-                                  const sumHH = newArr.reduce((sum: number, t: any) => sum + (t.households || 0), 0);
+                                  const sumPlots = newArr.reduce((sum: number, t: any) => Number(sum) + Number(t.plots || 0), 0);
+                                  const sumHH = newArr.reduce((sum: number, t: any) => Number(sum) + Number(t.households || 0), 0);
                                   updateStepStatus(project.id, stepKey, {
                                     ...inv,
                                     agriTypes: newArr,
@@ -600,8 +664,8 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
                             ...displayAgriTypes,
                             { code: "", plots: 0, households: 0, address: "" },
                           ];
-                          const sumPlots = newArr.reduce((sum: number, t: any) => sum + (t.plots || 0), 0);
-                          const sumHH = newArr.reduce((sum: number, t: any) => sum + (t.households || 0), 0);
+                          const sumPlots = newArr.reduce((sum: number, t: any) => Number(sum) + Number(t.plots || 0), 0);
+                          const sumHH = newArr.reduce((sum: number, t: any) => Number(sum) + Number(t.households || 0), 0);
                           updateStepStatus(project.id, stepKey, {
                             ...inv,
                             agriTypes: newArr,
@@ -657,8 +721,8 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
                                 onChange={(c) => {
                                   const newArr = [...displayNonAgriTypes];
                                   newArr[idx] = { code: c, plots, households: hh, address };
-                                  const sumPlots = newArr.reduce((sum: number, t: any) => sum + (t.plots || 0), 0);
-                                  const sumHH = newArr.reduce((sum: number, t: any) => sum + (t.households || 0), 0);
+                                  const sumPlots = newArr.reduce((sum: number, t: any) => Number(sum) + Number(t.plots || 0), 0);
+                                  const sumHH = newArr.reduce((sum: number, t: any) => Number(sum) + Number(t.households || 0), 0);
                                   updateStepStatus(project.id, stepKey, {
                                     ...inv,
                                     nonAgriTypes: newArr,
@@ -676,8 +740,8 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
                                 onChange={(v) => {
                                   const newArr = [...displayNonAgriTypes];
                                   newArr[idx] = { code, plots: v, households: hh, address };
-                                  const sumPlots = newArr.reduce((sum: number, t: any) => sum + (t.plots || 0), 0);
-                                  const sumHH = newArr.reduce((sum: number, t: any) => sum + (t.households || 0), 0);
+                                  const sumPlots = newArr.reduce((sum: number, t: any) => Number(sum) + Number(t.plots || 0), 0);
+                                  const sumHH = newArr.reduce((sum: number, t: any) => Number(sum) + Number(t.households || 0), 0);
                                   updateStepStatus(project.id, stepKey, {
                                     ...inv,
                                     nonAgriTypes: newArr,
@@ -696,8 +760,8 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
                                 onChange={(v) => {
                                   const newArr = [...displayNonAgriTypes];
                                   newArr[idx] = { code, plots, households: v, address };
-                                  const sumPlots = newArr.reduce((sum: number, t: any) => sum + (t.plots || 0), 0);
-                                  const sumHH = newArr.reduce((sum: number, t: any) => sum + (t.households || 0), 0);
+                                  const sumPlots = newArr.reduce((sum: number, t: any) => Number(sum) + Number(t.plots || 0), 0);
+                                  const sumHH = newArr.reduce((sum: number, t: any) => Number(sum) + Number(t.households || 0), 0);
                                   updateStepStatus(project.id, stepKey, {
                                     ...inv,
                                     nonAgriTypes: newArr,
@@ -716,8 +780,8 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
                                 onSave={(val) => {
                                   const newArr = [...displayNonAgriTypes];
                                   newArr[idx] = { code, plots, households: hh, address: val };
-                                  const sumPlots = newArr.reduce((sum: number, t: any) => sum + (t.plots || 0), 0);
-                                  const sumHH = newArr.reduce((sum: number, t: any) => sum + (t.households || 0), 0);
+                                  const sumPlots = newArr.reduce((sum: number, t: any) => Number(sum) + Number(t.plots || 0), 0);
+                                  const sumHH = newArr.reduce((sum: number, t: any) => Number(sum) + Number(t.households || 0), 0);
                                   updateStepStatus(project.id, stepKey, {
                                     ...inv,
                                     nonAgriTypes: newArr,
@@ -734,8 +798,8 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
                               <button
                                 onClick={() => {
                                   const newArr = displayNonAgriTypes.filter((_: any, i: number) => i !== idx);
-                                  const sumPlots = newArr.reduce((sum: number, t: any) => sum + (t.plots || 0), 0);
-                                  const sumHH = newArr.reduce((sum: number, t: any) => sum + (t.households || 0), 0);
+                                  const sumPlots = newArr.reduce((sum: number, t: any) => Number(sum) + Number(t.plots || 0), 0);
+                                  const sumHH = newArr.reduce((sum: number, t: any) => Number(sum) + Number(t.households || 0), 0);
                                   updateStepStatus(project.id, stepKey, {
                                     ...inv,
                                     nonAgriTypes: newArr,
@@ -761,8 +825,8 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
                             ...displayNonAgriTypes,
                             { code: "", plots: 0, households: 0, address: "" },
                           ];
-                          const sumPlots = newArr.reduce((sum: number, t: any) => sum + (t.plots || 0), 0);
-                          const sumHH = newArr.reduce((sum: number, t: any) => sum + (t.households || 0), 0);
+                          const sumPlots = newArr.reduce((sum: number, t: any) => Number(sum) + Number(t.plots || 0), 0);
+                          const sumHH = newArr.reduce((sum: number, t: any) => Number(sum) + Number(t.households || 0), 0);
                           updateStepStatus(project.id, stepKey, {
                             ...inv,
                             nonAgriTypes: newArr,
@@ -895,10 +959,10 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
       </div>
 
       {/* Detail inventory rounds */}
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-            <Layers className="w-3.5 h-3.5" /> Chi tiết các đợt kiểm đếm
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2 select-none">
+            <Layers className="w-4 h-4 text-slate-400" /> Chi tiết từng đợt kiểm đếm thực tế
           </span>
           {canEdit && (
             <button
@@ -922,35 +986,36 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
                   rounds: [...current, item],
                 });
               }}
-              className="text-[10px] font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg border border-blue-200 transition-colors cursor-pointer"
+              className="text-[11px] font-bold text-blue-600 bg-blue-50/80 hover:bg-blue-100/90 px-3.5 py-1.5 rounded-xl border border-blue-200/60 shadow-2xs hover:shadow-xs transition-all duration-250 cursor-pointer select-none flex items-center gap-1"
             >
-              + Thêm đợt kiểm đếm
+              <Plus className="w-3.5 h-3.5" /> Thêm đợt kiểm đếm
             </button>
           )}
         </div>
 
-        {/* Round Navigation Tabs */}
+        {/* Round Navigation Tabs - Premium Pillar with Badges matching mockup */}
         {roundsList.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 pb-1 border-b border-slate-100/80">
+          <div className="flex items-center gap-1.5 border-b border-slate-100 mb-4 px-1 font-sans">
             {roundsList.map((r: any, rIdx: number) => {
               const active = inventoryActiveRoundId === r.id || (rIdx === 0 && !inventoryActiveRoundId);
+              const itemsCount = r.items && r.items.length > 0 ? r.items.length : (r.targetType ? 1 : 0);
               return (
                 <button
                   key={r.id || rIdx}
                   onClick={() => setInventoryActiveRoundId(r.id)}
                   type="button"
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10.5px] uppercase font-extrabold tracking-wider transition-all border cursor-pointer select-none ${
+                  className={`flex items-center gap-2 pb-2 px-3 border-b-2 text-xs font-black transition-all duration-200 cursor-pointer select-none ${
                     active
-                      ? "bg-blue-600 border-blue-600 text-white shadow-xs"
-                      : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-700"
+                      ? "border-blue-650 text-blue-650 font-black"
+                      : "border-transparent text-slate-400 hover:text-slate-700"
                   }`}
                 >
-                  <span>🎯 Đợt {rIdx + 1}</span>
-                  {r.date && (
-                    <span className={`text-[9.5px] font-bold ${active ? "text-blue-100" : "text-slate-400"}`}>
-                      ({r.date})
-                    </span>
-                  )}
+                  <span className="uppercase whitespace-nowrap">Đợt {rIdx + 1}</span>
+                  <span className={`inline-flex items-center justify-center min-w-[17px] h-4 text-[9.5px] rounded-full px-1.5 font-bold ${
+                    active ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-500"
+                  }`}>
+                    {itemsCount}
+                  </span>
                 </button>
               );
             })}
@@ -994,19 +1059,19 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
             return (
               <div
                 key={round.id || idx}
-                className="bg-slate-50 p-4 rounded-xl border border-slate-200/80 shadow-xs flex flex-col gap-3.5"
+                className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col gap-4 animate-in fade-in duration-200"
               >
                 {/* Round Controls */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-slate-200/60 font-sans">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <span className="text-[11px] font-black text-blue-700 uppercase bg-blue-50 px-2.5 py-0.5 rounded-md border border-blue-150">
-                      Đợt {idx + 1}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 font-sans">
+                  <div className="flex items-center gap-3">
+                    <span className="text-[10px] font-black text-slate-700 bg-slate-100 px-2.5 py-1 rounded-lg uppercase tracking-wider">
+                      Đợt kiểm đếm {idx + 1}
                     </span>
 
                     <div className="flex items-center gap-1.5">
-                      <label className="text-[9px] font-extrabold text-slate-400 uppercase whitespace-nowrap">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                         Ngày thực hiện:
-                      </label>
+                      </span>
                       <CustomDatePicker
                         value={round.date || ""}
                         onChange={(val) => {
@@ -1025,10 +1090,10 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
                         const newRounds = roundsList.filter((r: any) => r.id !== round.id);
                         updateStepStatus(project.id, stepKey, { ...inv, rounds: newRounds });
                       }}
-                      className="p-1 px-1.5 text-xs font-semibold text-slate-450 hover:text-red-650 bg-white hover:bg-neutral-55 rounded border border-slate-200 hover:border-red-200 shadow-3xs flex items-center gap-1 transition-colors capitalize cursor-pointer select-none"
+                      className="text-xs font-bold text-slate-400 hover:text-red-500 transition-colors flex items-center gap-1 cursor-pointer select-none"
                     >
-                      <Trash2 className="w-3.5 h-3.5 text-slate-450" />
-                      <span className="text-[10px] font-bold">Xóa đợt</span>
+                      <Trash2 className="w-3.5 h-3.5 text-slate-400" />
+                      <span>Xóa đợt kiểm đếm</span>
                     </button>
                   )}
                 </div>
@@ -1063,8 +1128,8 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
                         return true;
                       });
 
-                      const sumOtherAgriPlots = otherAgriItemsSameType.reduce((acc: number, r: any) => acc + (r.donePlots || 0), 0);
-                      const sumOtherAgriHH = otherAgriItemsSameType.reduce((acc: number, r: any) => acc + (r.doneHouseholds || 0), 0);
+                      const sumOtherAgriPlots = otherAgriItemsSameType.reduce((acc: number, r: any) => Number(acc) + Number(r.donePlots || 0), 0);
+                      const sumOtherAgriHH = otherAgriItemsSameType.reduce((acc: number, r: any) => Number(acc) + Number(r.doneHouseholds || 0), 0);
 
                       let agriLimitPlots = 0;
                       let agriLimitHH = 0;
@@ -1127,8 +1192,8 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
                         return true;
                       });
 
-                      const sumOtherNonAgriPlots = otherNonAgriItemsSameType.reduce((acc: number, r: any) => acc + (r.donePlots || 0), 0);
-                      const sumOtherNonAgriHH = otherNonAgriItemsSameType.reduce((acc: number, r: any) => acc + (r.doneHouseholds || 0), 0);
+                      const sumOtherNonAgriPlots = otherNonAgriItemsSameType.reduce((acc: number, r: any) => Number(acc) + Number(r.donePlots || 0), 0);
+                      const sumOtherNonAgriHH = otherNonAgriItemsSameType.reduce((acc: number, r: any) => Number(acc) + Number(r.doneHouseholds || 0), 0);
 
                       let nonAgriLimitPlots = 0;
                       let nonAgriLimitHH = 0;
@@ -1174,23 +1239,23 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
 
                       // Org limits
                       const otherOrgItems = otherItems.filter((r: any) => r.targetType === "org");
-                      const sumOtherOrgs = otherOrgItems.reduce((acc: number, r: any) => acc + (r.doneOrgs || 0), 0);
+                      const sumOtherOrgs = otherOrgItems.reduce((acc: number, r: any) => Number(acc) + Number(r.doneOrgs || 0), 0);
                       const maxOrgs = Math.max(0, targetOrgs - sumOtherOrgs);
 
                       // Asset limits
                       const otherAssetItems = otherItems.filter((r: any) => r.targetType === "assets");
-                      const sumOtherAssetHH = otherAssetItems.reduce((acc: number, r: any) => acc + (r.doneHouseholds || 0), 0);
+                      const sumOtherAssetHH = otherAssetItems.reduce((acc: number, r: any) => Number(acc) + Number(r.doneHouseholds || 0), 0);
                       const maxAssetHH = Math.max(0, targetGraveHH - sumOtherAssetHH);
 
                       return (
                         <div
                           key={item.id || itemIdx}
-                          className="bg-white border border-slate-200/80 rounded-xl p-3 shadow-3xs flex flex-col gap-3"
+                          className="bg-slate-50/45 hover:bg-slate-50/80 border border-slate-200/70 hover:border-slate-350 rounded-2xl p-4.5 shadow-2xs transition-all duration-200 flex flex-col gap-3.5"
                         >
-                          <div className="flex flex-wrap items-center justify-between gap-3 pb-1.5 border-b border-dashed border-slate-100">
-                            <div className="flex flex-wrap items-center gap-3.5">
-                              <div className="flex items-center gap-1.5">
-                                <span className="text-[10px] font-extrabold text-slate-400 uppercase whitespace-nowrap">
+                          <div className="flex flex-wrap items-center justify-between gap-3 pb-2 border-b border-dashed border-slate-200/60">
+                            <div className="flex flex-wrap items-center gap-4">
+                              <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider whitespace-nowrap">
                                   Đối tượng:
                                 </span>
                                 <select
@@ -1230,7 +1295,7 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
                                     }
                                     updateStepStatus(project.id, stepKey, { ...inv, rounds: nextRounds });
                                   }}
-                                  className="bg-white border border-slate-200 rounded px-1.5 py-0.5 text-[10.5px] font-bold text-slate-755 outline-none font-sans"
+                                  className="bg-white border border-slate-200 hover:border-slate-300 focus:border-blue-500 rounded-xl px-2.5 py-1 text-xs font-extrabold text-slate-800 outline-none font-sans shadow-3xs cursor-pointer"
                                 >
                                   {availableInvTypes.map((t) => (
                                     <option key={t.value} value={t.value}>
@@ -1244,8 +1309,8 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
                               </div>
 
                               {["agri", "non_agri"].includes(item.targetType || "agri") && (
-                                <div className="flex items-center gap-1.5">
-                                  <span className="text-[10px] font-extrabold text-slate-400 uppercase whitespace-nowrap">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider whitespace-nowrap">
                                     Loại đất:
                                   </span>
                                   <Combobox
@@ -1297,9 +1362,9 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
                                   nextRounds[idx] = { ...nextRounds[idx], items: nextItems };
                                   updateStepStatus(project.id, stepKey, { ...inv, rounds: nextRounds });
                                 }}
-                                className="text-slate-400 hover:text-red-500 text-[10px] font-bold flex items-center gap-0.5 hover:bg-red-50 px-1 py-0.5 rounded transition-colors"
+                                className="text-xs font-bold text-slate-400 hover:text-red-500 transition-colors flex items-center gap-1 cursor-pointer select-none"
                               >
-                                × Gỡ đối tượng
+                                <span>Gỡ đối tượng</span>
                               </button>
                             )}
                           </div>
@@ -1314,6 +1379,7 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
                                     readOnly={!canEdit}
                                     className="w-16 h-7 text-center bg-slate-50 border border-slate-200 rounded text-xs font-bold font-mono outline-none focus:border-blue-500"
                                     value={item.donePlots || 0}
+                                    tooltipText={`Còn lại ${maxAgriPlots} thửa`}
                                     onChange={(val) => {
                                       const nextItems = [...roundItems];
                                       nextItems[itemIdx] = { ...nextItems[itemIdx], donePlots: Math.min(val, maxAgriPlots) };
@@ -1329,7 +1395,6 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
                                       updateStepStatus(project.id, stepKey, { ...inv, rounds: nextRounds });
                                     }}
                                   />
-                                  <span className="text-[10px] text-slate-400">/ {maxAgriPlots} thửa còn lại</span>
                                 </div>
                                 <div className="flex items-center gap-1.5">
                                   <span className="text-[10px] text-slate-500 font-bold whitespace-nowrap">Số hộ đại diện:</span>
@@ -1337,6 +1402,7 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
                                     readOnly={!canEdit}
                                     className="w-16 h-7 text-center bg-slate-50 border border-slate-200 rounded text-xs font-bold font-mono outline-none focus:border-blue-500"
                                     value={item.doneHouseholds || 0}
+                                    tooltipText={`Còn lại ${maxAgriHH} hộ`}
                                     onChange={(val) => {
                                       const nextItems = [...roundItems];
                                       nextItems[itemIdx] = { ...nextItems[itemIdx], doneHouseholds: Math.min(val, maxAgriHH) };
@@ -1352,7 +1418,6 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
                                       updateStepStatus(project.id, stepKey, { ...inv, rounds: nextRounds });
                                     }}
                                   />
-                                  <span className="text-[10px] text-slate-400">/ {maxAgriHH} hộ còn lại</span>
                                 </div>
                               </>
                             )}
@@ -1365,6 +1430,7 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
                                     readOnly={!canEdit}
                                     className="w-16 h-7 text-center bg-slate-50 border border-slate-200 rounded text-xs font-bold font-mono outline-none focus:border-blue-500"
                                     value={item.donePlots || 0}
+                                    tooltipText={`Còn lại ${maxNonAgriPlots} thửa`}
                                     onChange={(val) => {
                                       const nextItems = [...roundItems];
                                       nextItems[itemIdx] = { ...nextItems[itemIdx], donePlots: Math.min(val, maxNonAgriPlots) };
@@ -1380,7 +1446,6 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
                                       updateStepStatus(project.id, stepKey, { ...inv, rounds: nextRounds });
                                     }}
                                   />
-                                  <span className="text-[10px] text-slate-400">/ {maxNonAgriPlots} thửa còn lại</span>
                                 </div>
                                 <div className="flex items-center gap-1.5">
                                   <span className="text-[10px] text-slate-500 font-bold whitespace-nowrap">Số hộ đại diện:</span>
@@ -1388,6 +1453,7 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
                                     readOnly={!canEdit}
                                     className="w-16 h-7 text-center bg-slate-50 border border-slate-200 rounded text-xs font-bold font-mono outline-none focus:border-blue-500"
                                     value={item.doneHouseholds || 0}
+                                    tooltipText={`Còn lại ${maxNonAgriHH} hộ`}
                                     onChange={(val) => {
                                       const nextItems = [...roundItems];
                                       nextItems[itemIdx] = { ...nextItems[itemIdx], doneHouseholds: Math.min(val, maxNonAgriHH) };
@@ -1403,7 +1469,6 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
                                       updateStepStatus(project.id, stepKey, { ...inv, rounds: nextRounds });
                                     }}
                                   />
-                                  <span className="text-[10px] text-slate-400">/ {maxNonAgriHH} hộ còn lại</span>
                                 </div>
                               </>
                             )}
@@ -1413,8 +1478,9 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
                                 <span className="text-[10px] text-slate-500 font-bold whitespace-nowrap font-sans">Số tổ chức:</span>
                                 <NumberInput
                                   readOnly={!canEdit}
-                                  className="w-16 h-7 text-center bg-slate-50 border border-slate-200 rounded text-xs font-bold font-mono outline-none"
+                                  className="w-16 h-7 text-center bg-slate-50 border border-slate-200 focus:border-blue-500 rounded text-xs font-bold font-mono outline-none"
                                   value={item.doneOrgs || 0}
+                                  tooltipText={`Còn lại ${maxOrgs} tổ chức`}
                                   onChange={(val) => {
                                     const nextItems = [...roundItems];
                                     nextItems[itemIdx] = { ...nextItems[itemIdx], doneOrgs: Math.min(val, maxOrgs) };
@@ -1430,7 +1496,6 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
                                     updateStepStatus(project.id, stepKey, { ...inv, rounds: nextRounds });
                                   }}
                                 />
-                                <span className="text-[10px] text-slate-400">/ {maxOrgs} tổ chức còn lại</span>
                               </div>
                             )}
 
@@ -1442,6 +1507,7 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
                                     readOnly={!canEdit}
                                     className="w-16 h-7 text-center bg-slate-50 border border-slate-200 rounded text-xs font-bold font-mono outline-none focus:border-blue-500"
                                     value={item.doneHouseholds || 0}
+                                    tooltipText={`Còn lại ${maxAssetHH} hộ`}
                                     onChange={(val) => {
                                       const nextItems = [...roundItems];
                                       nextItems[itemIdx] = { ...nextItems[itemIdx], doneHouseholds: Math.min(val, maxAssetHH) };
@@ -1457,27 +1523,27 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
                                       updateStepStatus(project.id, stepKey, { ...inv, rounds: nextRounds });
                                     }}
                                   />
-                                  <span className="text-[10px] text-slate-400">/ {maxAssetHH} hộ còn lại</span>
                                 </div>
 
-                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 bg-slate-100 p-2.5 rounded-lg border border-slate-200/50">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 bg-slate-50/75 p-3.5 rounded-2xl border border-slate-200/60 shadow-3xs">
                                   {assetItems.map((assetConfig) => {
                                     const valInRound = item[assetConfig.id] !== undefined ? item[assetConfig.id] : 0;
                                     const otherAssetRounds = otherItems.filter((r: any) => r.targetType === "assets");
                                     const otherAssetSummary = otherAssetRounds.reduce(
-                                      (acc: number, r: any) => acc + (Number(r[assetConfig.id]) || 0),
+                                      (acc: number, r: any) => Number(acc) + Number(Number(r[assetConfig.id]) || 0),
                                       0
                                     );
                                     const maxAssetLeft = Math.max(0, assetConfig.value - otherAssetSummary);
 
                                     return (
-                                      <div key={assetConfig.id} className="flex items-center justify-between gap-1 bg-white p-1.5 rounded border border-slate-200/50">
-                                        <span className="text-[9.5px] font-bold text-slate-500 truncate">{assetConfig.label}</span>
+                                      <div key={assetConfig.id} className="flex items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-slate-200 hover:border-slate-350 transition-all duration-200 shadow-3xs">
+                                        <span className="text-[10px] font-bold text-slate-500 truncate">{assetConfig.label}</span>
                                         <div className="flex items-center gap-1.5 shrink-0">
                                           <NumberInput
                                             readOnly={!canEdit}
-                                            className="w-12 h-6 text-center bg-slate-50 border border-slate-200 rounded text-[9.5px] font-bold text-slate-800 outline-none"
+                                            className="w-14 h-7 text-center bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold font-mono outline-none focus:border-blue-500 transition-colors"
                                             value={valInRound}
+                                            tooltipText={`Còn lại ${maxAssetLeft} ${assetConfig.label.toLowerCase()}`}
                                             onChange={(val) => {
                                               const finalVal = Math.min(val, maxAssetLeft);
                                               const nextItems = [...roundItems];
@@ -1499,7 +1565,6 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
                                               updateStepStatus(project.id, stepKey, { ...inv, rounds: nextRounds });
                                             }}
                                           />
-                                          <span className="text-[9px] text-slate-400">/ {maxAssetLeft}</span>
                                         </div>
                                       </div>
                                     );

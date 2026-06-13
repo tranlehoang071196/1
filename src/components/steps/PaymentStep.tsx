@@ -28,6 +28,7 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
   // State to manage expanded/hover/deleting states localized inside this step
   const [expandedRounds, setExpandedRounds] = useState<Record<string, boolean>>({});
   const [roundDeletingId, setRoundDeletingId] = useState<string | null>(null);
+  const [activeRoundId, setActiveRoundId] = useState<string | null>(null);
 
   // Reference inventory data to find original quantities
   const invStep = project.steps?.inventory as any;
@@ -54,6 +55,8 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
   if (hasInvNonAgri) availableTypes.push({ value: "non_agri", label: "🏠 Đất phi nông nghiệp" });
   if (hasInvOrg) availableTypes.push({ value: "org", label: "🏢 Tổ chức" });
   if (hasInvAsset) availableTypes.push({ value: "assets", label: "📦 Tài sản khác" });
+
+  const defaultTargetType = availableTypes[0]?.value || "agri";
 
   const getAgriPlots = (r: any) => (r.agriPlots ?? (r.targetType === 'agri' ? r.donePlots : 0)) || 0;
   const getAgriHH = (r: any) => (r.agriHouseholds ?? (r.targetType === 'agri' ? r.doneHouseholds : 0)) || 0;
@@ -89,21 +92,21 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
   const approvalStep = project.steps?.approval as any;
   const approvalRounds = approvalStep?.rounds || [];
 
-  const totalApprovedAmount = approvalRounds.reduce((acc: number, r: any) => acc + (r.amount || 0), 0) +
-    approvalRounds.reduce((acc: number, r: any) => acc + (r.cost || 0), 0);
-  const totalPaidAmount = rounds.reduce((acc: number, r: any) => acc + (r.amount || 0), 0);
+  const totalApprovedAmount = approvalRounds.reduce((acc: number, r: any) => Number(acc) + Number(r.amount || 0), 0);
+  const totalApprovedCost = approvalRounds.reduce((acc: number, r: any) => Number(acc) + Number(r.cost || 0), 0);
+  const totalPaidAmount = rounds.reduce((acc: number, r: any) => Number(acc) + Number(r.amount || 0), 0);
 
-  const doneAgriPlots = rounds.reduce((acc: number, r: any) => acc + getAgriPlots(r), 0);
-  const doneAgriHH = rounds.reduce((acc: number, r: any) => acc + getAgriHH(r), 0);
-  const doneNonAgriPlots = rounds.reduce((acc: number, r: any) => acc + getNonAgriPlots(r), 0);
-  const doneNonAgriHH = rounds.reduce((acc: number, r: any) => acc + getNonAgriHH(r), 0);
-  const doneOrgs = rounds.reduce((acc: number, r: any) => acc + getOrgsVal(r), 0);
-  const doneAssetHH = rounds.reduce((acc: number, r: any) => acc + getAssetHH(r), 0);
+  const doneAgriPlots = rounds.reduce((acc: number, r: any) => Number(acc) + Number(getAgriPlots(r)), 0);
+  const doneAgriHH = rounds.reduce((acc: number, r: any) => Number(acc) + Number(getAgriHH(r)), 0);
+  const doneNonAgriPlots = rounds.reduce((acc: number, r: any) => Number(acc) + Number(getNonAgriPlots(r)), 0);
+  const doneNonAgriHH = rounds.reduce((acc: number, r: any) => Number(acc) + Number(getNonAgriHH(r)), 0);
+  const doneOrgs = rounds.reduce((acc: number, r: any) => Number(acc) + Number(getOrgsVal(r)), 0);
+  const doneAssetHH = rounds.reduce((acc: number, r: any) => Number(acc) + Number(getAssetHH(r)), 0);
 
   return (
-    <div className="flex flex-col gap-4 mt-2 w-full">
+    <div className="flex flex-col gap-4 mt-2 w-full font-sans">
       {/* KPI Dashboard for Payment Step */}
-      <div className="border border-slate-200 rounded-xl bg-slate-50/50 p-4 space-y-3 font-sans">
+      <div className="border border-slate-200/90 rounded-2xl bg-slate-50/40 p-4.5 space-y-3 shadow-3xs">
         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block select-none">
           Tiến độ và ngân sách chi trả
         </span>
@@ -116,7 +119,7 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
             <div className="space-y-1 select-none">
               {hasInvAgri && (
                 <div className="text-[11.5px] text-slate-755 font-medium flex items-center gap-1.5">
-                  🌾 <span className="text-slate-500">Đất nông nghiệp:</span>
+                  🌾 <span className="text-slate-500 font-sans">Đất nông nghiệp:</span>
                   <strong className="text-emerald-700">
                     {formatCount(doneAgriPlots)} thửa (thuộc {formatCount(doneAgriHH)} hộ)
                   </strong>
@@ -124,7 +127,7 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
               )}
               {hasInvNonAgri && (
                 <div className="text-[11.5px] text-slate-755 font-medium flex items-center gap-1.5">
-                  🏠 <span className="text-slate-500">Đất phi nông nghiệp:</span>
+                  🏠 <span className="text-slate-500 font-sans">Đất phi nông nghiệp:</span>
                   <strong className="text-emerald-700">
                     {formatCount(doneNonAgriPlots)} thửa (thuộc {formatCount(doneNonAgriHH)} hộ)
                   </strong>
@@ -132,13 +135,13 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
               )}
               {hasInvOrg && (
                 <div className="text-[11.5px] text-slate-755 font-medium flex items-center gap-1.5">
-                  🏢 <span className="text-slate-500">Tổ chức:</span>
+                  🏢 <span className="text-slate-500 font-sans">Tổ chức:</span>
                   <strong className="text-emerald-700">{formatCount(doneOrgs)} tổ chức</strong>
                 </div>
               )}
               {hasInvAsset && (
                 <div className="text-[11.5px] text-slate-755 font-medium flex items-center gap-1.5">
-                  📦 <span className="text-slate-500">Tài sản khác:</span>
+                  📦 <span className="text-slate-500 font-sans">Tài sản khác:</span>
                   <strong className="text-emerald-700">thuộc {formatCount(doneAssetHH)} hộ</strong>
                 </div>
               )}
@@ -146,12 +149,12 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
           </div>
 
           <div className="space-y-2 pl-2 border-l-2 border-indigo-500 bg-white/40 p-2.5 rounded-lg border border-slate-100/50">
-            <span className="text-[9.5px] font-black text-slate-400 uppercase flex items-center gap-1">
+            <span className="text-[9.5px] font-black text-slate-400 uppercase flex items-center gap-1 select-none">
               <CircleDollarSign className="w-3.5 h-3.5 text-indigo-500" />
               Tỷ lệ giải ngân bồi thường:
             </span>
             <div className="flex flex-col gap-1">
-              <div className="text-sm font-semibold text-slate-805 flex items-baseline gap-1">
+              <div className="text-sm font-semibold text-slate-805 flex items-baseline gap-1 select-none">
                 <span className="text-indigo-700 font-extrabold font-mono text-base">
                   {formatCurrency(totalPaidAmount).replace(" đồng", "")}
                 </span>
@@ -171,7 +174,7 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
                 />
               </div>
 
-              <div className="flex items-center justify-between text-[10px] text-slate-400 font-bold mt-0.5">
+              <div className="flex items-center justify-between text-[10px] text-slate-400 font-bold mt-0.5 select-none animate-in fade-in">
                 <span>ĐÃ CHI TRẢ</span>
                 <span>
                   {totalApprovedAmount > 0 ? Math.round((totalPaidAmount / totalApprovedAmount) * 100) : 0}%
@@ -179,10 +182,10 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
               </div>
 
               {totalPaidAmount > totalApprovedAmount && (
-                <div className="bg-rose-50 border border-rose-200 rounded-lg p-2.5 mt-3.5 flex items-start gap-2 text-rose-800 text-[10.5px] leading-relaxed">
+                <div className="bg-rose-50 border border-rose-200 rounded-lg p-2.5 mt-3.5 flex items-start gap-2 text-rose-800 text-[10.5px] leading-relaxed animate-in slide-in-from-top-1">
                   <ShieldAlert className="w-4 h-4 text-rose-500 shrink-0 mt-0.5 animate-bounce" />
                   <div>
-                    <span className="font-bold block text-rose-950">⚡ Cảnh báo vượt hạn ngạch ngân sách:</span>
+                    <span className="font-bold block text-rose-955 select-none">⚡ Cảnh báo vượt hạn ngạch ngân sách:</span>
                     Tổng giá trị chi trả thực tế ({formatCurrency(totalPaidAmount).replace(" đồng", "")} VNĐ) hiện đã vượt quá tổng số ngân sách giải ngân được phê duyệt tối đa ({formatCurrency(totalApprovedAmount).replace(" đồng", "")} VNĐ).
                   </div>
                 </div>
@@ -194,34 +197,98 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
 
       {/* Main List Management Container */}
       <div className="w-full space-y-4">
-        <div className="w-full pt-2 space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest font-sans">
-              <Layers className="w-3.5 h-3.5 text-blue-500" />
-              Các đợt chi trả tiền
+        <div className="w-full pt-1 space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-200/80 pb-3">
+            <div className="flex items-center gap-2 text-xs font-bold text-slate-650 uppercase tracking-wider select-none">
+              <Layers className="w-4 h-4 text-emerald-500" />
+              Các đợt chi trả tiền bồi thường
             </div>
             {canEdit && (
               <button
-                onClick={() => addRound(project.id, stepKey, stepData)}
-                className="text-[10px] font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg border border-blue-200 transition-colors font-sans cursor-pointer"
+                onClick={() => {
+                  const newRoundId = Math.random()
+                    .toString(36)
+                    .substring(2, 11);
+                  const currentRounds = paymentData?.rounds || [];
+                  const newItem = {
+                    id: newRoundId,
+                    targetType: defaultTargetType || "agri",
+                    donePlots: 0,
+                    doneHouseholds: 0,
+                    doneOrgs: 0,
+                    doneGraves: 0,
+                    doneAssets: 0,
+                    doneStructures: 0,
+                    amount: 0,
+                    cost: 0,
+                    notes: "",
+                    links: [],
+                    plots: 0,
+                    households: 0,
+                  };
+                  updateStepStatus(project.id, stepKey, {
+                    ...paymentData,
+                    rounds: [...currentRounds, newItem],
+                  });
+                  setActiveRoundId(newRoundId);
+                  setExpandedRounds((p) => ({ ...p, [`${stepKey}_${newRoundId}`]: true }));
+                }}
+                className="text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100/80 px-4 py-2 rounded-xl border border-emerald-200/65 transition-all cursor-pointer shadow-3xs hover:shadow-2xs active:scale-98 select-none h-9 flex items-center gap-1 font-sans"
               >
                 + Thêm đợt chi trả
               </button>
             )}
           </div>
 
-          <div className="space-y-3">
+          {/* Premium Pill Switched Tabs */}
+          {rounds.length > 0 && (
+            <div className="p-1 rounded-2xl bg-slate-100 border border-slate-200 flex flex-wrap gap-1.5 mb-2 shadow-3xs">
+              {rounds.map((r: any, rIdx: number) => {
+                const isSelected = r.id === (activeRoundId || rounds[0]?.id);
+                return (
+                  <button
+                    key={r.id || rIdx}
+                    onClick={() => {
+                      setActiveRoundId(r.id);
+                      setExpandedRounds((p) => ({ ...p, [`${stepKey}_${r.id}`]: true }));
+                    }}
+                    type="button"
+                    className={`flex items-center gap-2 px-4 py-1.5 rounded-xl text-xs font-bold tracking-wide transition-all duration-200 cursor-pointer select-none font-sans ${
+                      isSelected
+                        ? "bg-white text-emerald-700 shadow-sm border border-slate-200/80"
+                        : "bg-transparent border border-transparent text-slate-500 hover:text-slate-900 hover:bg-white/50"
+                    }`}
+                  >
+                    <span className={`relative flex h-2 w-2 rounded-full ${isSelected ? "bg-emerald-555" : "bg-slate-300"}`}>
+                      {isSelected && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-65"></span>}
+                    </span>
+                    <span>CHI TRẢ ĐỢT {rIdx + 1}</span>
+                    {r.amount > 0 && (
+                      <span className={`text-[10px] font-semibold font-mono ${isSelected ? "text-emerald-600" : "text-emerald-500/70"}`}>
+                        ({formatCurrency(r.amount).replace(" đồng", "")})
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="space-y-4">
             {rounds.length === 0 ? (
-              <div className="text-center py-8 text-xs text-slate-400 bg-slate-50/50 rounded-xl border border-dashed border-slate-200/80 italic font-sans">
+              <div className="text-center py-8 text-xs text-slate-400 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200/80 italic select-none">
                 Chưa có đợt chi trả nào được tạo. Vui lòng bấm "+ Thêm đợt chi trả" để tạo mới.
               </div>
             ) : (
-              rounds.map((round: any, idx: number) => {
-                const roundId = `${stepKey}_${round.id}`;
-                const isExpanded = !!expandedRounds[roundId];
+              rounds
+                .filter((r: any) => r.id === (activeRoundId || rounds[0]?.id))
+                .map((round: any) => {
+                  const idx = rounds.indexOf(round);
+                  const roundId = `${stepKey}_${round.id}`;
+                  const isExpanded = expandedRounds[roundId] !== false; // Active đợt thì mặc định mở rộng
 
-                // Seek corresponding approval round
-                const matched = approvalRounds.find((r: any) => r.id === round.approvalRoundId);
+                  // Seek corresponding approval round
+                  const matched = approvalRounds.find((r: any) => r.id === round.approvalRoundId);
 
                 // Calculations of remaining values
                 const otherRounds = rounds.filter((r: any) => r.id !== round.id);
@@ -229,12 +296,12 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
                   (r: any) => r.approvalRoundId === round.approvalRoundId
                 );
 
-                const sumPaidAgriPlots = otherRoundsOfSameDecision.reduce((acc: number, r: any) => acc + (r.agriPlots || 0), 0);
-                const sumPaidAgriHH = otherRoundsOfSameDecision.reduce((acc: number, r: any) => acc + (r.agriHouseholds || 0), 0);
-                const sumPaidNonAgriPlots = otherRoundsOfSameDecision.reduce((acc: number, r: any) => acc + (r.nonAgriPlots || 0), 0);
-                const sumPaidNonAgriHH = otherRoundsOfSameDecision.reduce((acc: number, r: any) => acc + (r.nonAgriHouseholds || 0), 0);
-                const sumPaidOrgs = otherRoundsOfSameDecision.reduce((acc: number, r: any) => acc + (r.orgs || 0), 0);
-                const sumPaidAssetHH = otherRoundsOfSameDecision.reduce((acc: number, r: any) => acc + (r.assetHouseholds || 0), 0);
+                const sumPaidAgriPlots = otherRoundsOfSameDecision.reduce((acc: number, r: any) => Number(acc) + Number(r.agriPlots || 0), 0);
+                const sumPaidAgriHH = otherRoundsOfSameDecision.reduce((acc: number, r: any) => Number(acc) + Number(r.agriHouseholds || 0), 0);
+                const sumPaidNonAgriPlots = otherRoundsOfSameDecision.reduce((acc: number, r: any) => Number(acc) + Number(r.nonAgriPlots || 0), 0);
+                const sumPaidNonAgriHH = otherRoundsOfSameDecision.reduce((acc: number, r: any) => Number(acc) + Number(r.nonAgriHouseholds || 0), 0);
+                const sumPaidOrgs = otherRoundsOfSameDecision.reduce((acc: number, r: any) => Number(acc) + Number(r.orgs || 0), 0);
+                const sumPaidAssetHH = otherRoundsOfSameDecision.reduce((acc: number, r: any) => Number(acc) + Number(r.assetHouseholds || 0), 0);
 
                 const maxAgriPlots = Math.max(0, matched ? getAgriPlots(matched) - sumPaidAgriPlots : 0);
                 const maxAgriHH = Math.max(0, matched ? getAgriHH(matched) - sumPaidAgriHH : 0);
@@ -243,13 +310,18 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
                 const maxOrgs = Math.max(0, matched ? getOrgsVal(matched) - sumPaidOrgs : 0);
                 const maxAssetHH = Math.max(0, matched ? getAssetHH(matched) - sumPaidAssetHH : 0);
 
-                const sumPaidAmount = otherRoundsOfSameDecision.reduce((acc: number, r: any) => acc + (r.amount || 0), 0);
-                const maxAmountAllowed = matched ? Math.max(0, (matched.amount || 0) + (matched.cost || 0) - sumPaidAmount) : Infinity;
+                const sumPaidAmount = otherRoundsOfSameDecision.reduce((acc: number, r: any) => Number(acc) + Number(r.amount || 0), 0);
+                const maxAmountAllowed = matched ? Math.max(0, (matched.amount || 0) - sumPaidAmount) : Infinity;
 
                 return (
                   <div
                     key={round.id}
-                    className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm"
+                    className={cn(
+                      "bg-white rounded-2xl border transition-all duration-300 shadow-xs overflow-hidden",
+                      isExpanded
+                        ? "border-slate-300 border-l-4 border-l-emerald-500 shadow-sm"
+                        : "border-slate-200 hover:border-slate-300"
+                    )}
                   >
                     {/* Header Row */}
                     <div
@@ -265,17 +337,17 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
                         <div
                           className={cn(
                             "w-1.5 h-1.5 rounded-full",
-                            round.paymentDate || round.date ? "bg-emerald-500" : "bg-blue-500"
+                            round.paymentDate || round.date ? "bg-emerald-500" : "bg-emerald-500"
                           )}
                         />
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 select-none">
                           <span className="text-[11.5px] font-bold text-slate-755 font-sans">
-                            Đợt chi trả: <span className="text-blue-650">Đợt {idx + 1}</span>
+                            Đợt chi trả: <span className="text-emerald-700">Đợt {idx + 1}</span>
                           </span>
                           {(round.paymentDate || round.date) && (
                             <span className="text-[10px] text-slate-400 font-normal font-sans">
                               • Ngày chi trả:{" "}
-                              <span className="font-semibold text-slate-600">
+                              <span className="font-semibold text-slate-600 font-mono">
                                 {round.paymentDate || round.date}
                               </span>
                             </span>
@@ -283,7 +355,7 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3 select-none">
                         {round.amount > 0 && (
                           <div className="flex flex-col items-end text-right">
                             <span className="text-[10px] font-extrabold text-emerald-600 font-mono">
@@ -312,14 +384,14 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
                         >
                           <div className="p-4 space-y-4">
                             {/* Quyết định phê duyệt liên kết */}
-                            <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-lg mb-3">
+                            <div className="p-4 bg-white border border-slate-200 rounded-2xl mb-4 shadow-3xs hover:border-slate-300 transition-all">
                               <div className="space-y-2">
-                                <label className="text-[9px] font-extrabold text-blue-600 uppercase block font-sans">
+                                <label className="text-[9.5px] font-bold text-slate-500 uppercase tracking-wider block font-sans select-none">
                                   Quyết định phê duyệt bồi thường, hỗ trợ, TĐC
                                 </label>
                                 <select
                                   disabled={!canEdit}
-                                  className="w-full bg-white border border-slate-200 rounded-md px-2 py-1.5 text-[11px] font-semibold text-slate-800 outline-none select-none font-sans"
+                                  className="w-full bg-slate-50 hover:bg-slate-100 border border-slate-200 hover:border-slate-300 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-705 outline-none font-sans transition-all h-9 cursor-pointer shadow-3xs"
                                   value={round.approvalRoundId || ""}
                                   onChange={(e) => {
                                     const selectedId = e.target.value;
@@ -371,8 +443,8 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
 
                                 {round.approvalRoundId ? (
                                   matched ? (
-                                    <div className="text-[11px] font-medium text-slate-700 mt-2 flex flex-col gap-1.5 bg-white/75 p-2.5 rounded-md border border-slate-200/60 font-sans shadow-sm w-full">
-                                      <div className="text-slate-400 text-[9px] font-extrabold uppercase tracking-wider">
+                                    <div className="text-xs font-medium text-slate-700 mt-3 flex flex-col gap-2 bg-slate-50/50 p-4 rounded-xl border border-slate-250/20 font-sans shadow-3xs w-full">
+                                      <div className="text-slate-400 text-[9.5px] font-bold uppercase tracking-wider select-none">
                                         Thông tin quyết định:
                                       </div>
                                       <span className="text-slate-700 text-[10.5px]">
@@ -382,11 +454,19 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
                                         </strong>
                                       </span>
                                       <span className="text-[10.5px]">
-                                        • Tổng tiền BT, HT:{" "}
-                                        <strong className="text-emerald-700 font-bold">
-                                          {formatCurrency((matched.amount || 0) + (matched.cost || 0))}
+                                        • Tiền bồi thường, hỗ trợ:{" "}
+                                        <strong className="text-emerald-705 font-bold font-mono">
+                                          {formatCurrency(matched.amount || 0)}
                                         </strong>
                                       </span>
+                                      {!!matched.cost && matched.cost > 0 && (
+                                        <span className="text-[10.5px]">
+                                          • Chi phí thực hiện bồi thường:{" "}
+                                          <strong className="text-blue-600 font-semibold font-mono">
+                                            {formatCurrency(matched.cost)}
+                                          </strong>
+                                        </span>
+                                      )}
                                       <span className="text-[10.5px]">
                                         • Quy mô:{" "}
                                         <strong className="text-slate-700 font-bold">
@@ -395,7 +475,7 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
                                       </span>
                                       {matched.links && matched.links.length > 0 && (
                                         <div className="mt-1.5 border-t border-slate-100 pt-1.5 w-full">
-                                          <div className="text-[9px] text-slate-400 font-extrabold uppercase mb-1">
+                                          <div className="text-[9.5px] text-slate-455 font-bold uppercase mb-1.5 select-none">
                                             Hồ sơ đính kèm (QĐ):
                                           </div>
                                           <div className="space-y-1">
@@ -405,7 +485,7 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
                                                 href={lnk.url}
                                                 target="_blank"
                                                 rel="noreferrer"
-                                                className="text-[10px] text-blue-600 hover:underline flex items-center gap-1 font-semibold"
+                                                className="text-[10px] text-emerald-600 hover:text-emerald-700 hover:underline flex items-center gap-1 font-semibold"
                                               >
                                                 📎 {lnk.name || "Tải tài liệu"}
                                               </a>
@@ -415,7 +495,7 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
                                       )}
                                     </div>
                                   ) : (
-                                    <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-md text-[10.5px] text-amber-700 font-bold flex items-center gap-1.5 mt-2 font-sans">
+                                    <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-md text-[10.5px] text-amber-700 font-bold flex items-center gap-1.5 mt-2 font-sans select-none">
                                       <span>
                                         ⚠️ Quyết định phê duyệt tham chiếu đã bị xóa hoặc không còn tồn tại! Vui lòng chọn quyết định khác.
                                       </span>
@@ -431,7 +511,7 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
 
                             {/* Target Groups Section */}
                             <div className="space-y-2 pb-3.5 border-b border-slate-100 mb-3">
-                              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block font-sans">
+                              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block font-sans select-none">
                                 Nhóm đối tượng chi trả đợt này
                               </div>
 
@@ -460,7 +540,7 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
                                     {activeTypes.map((typeVal, typeIdx) => (
                                       <div
                                         key={`${typeVal}-${typeIdx}`}
-                                        className="flex flex-wrap items-center gap-3 bg-slate-50/50 p-2.5 rounded-lg border border-slate-200/60 w-full xl:w-auto relative group"
+                                        className="flex flex-wrap items-center gap-3.5 bg-slate-50/60 p-3 rounded-2xl border border-slate-200/70 w-full xl:w-auto relative group shadow-3xs transition-all hover:bg-slate-50 hover:border-slate-350"
                                       >
                                         <div className="flex items-center gap-1.5 min-w-[170px]">
                                           <select
@@ -499,7 +579,7 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
                                                 roundCopy
                                               );
                                             }}
-                                            className="bg-white border border-slate-200 rounded px-2 py-1 text-[10px] font-bold text-slate-700 outline-none focus:border-blue-500 uppercase tracking-tight min-w-[150px] font-sans h-7"
+                                            className="bg-white border border-slate-200 rounded-xl px-2.5 py-1 text-[10.5px] font-bold text-slate-700 outline-none focus:border-emerald-500 hover:border-slate-350 transition-all uppercase tracking-tight min-w-[160px] font-sans h-8 shadow-3xs cursor-pointer"
                                           >
                                             {availableTypes.map((t) => (
                                               <option
@@ -517,9 +597,10 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
                                           <div className="flex items-center gap-3">
                                             <div className="flex items-center gap-1.5 font-sans">
                                               <NumberInput
-                                                className="w-16 h-7 text-center bg-white border border-slate-200 rounded px-1.5 py-0.5 text-[10px] font-bold text-slate-800 outline-none focus:border-blue-500 font-mono"
+                                                className="w-16 h-8 text-center bg-white border border-slate-200 hover:border-slate-350 focus:border-emerald-500 transition-colors rounded-xl px-1.5 py-0.5 text-[11px] font-bold text-slate-800 outline-none font-mono shadow-3xs"
                                                 placeholder="Thửa"
                                                 value={getAgriPlots(round)}
+                                                tooltipText={`Còn lại ${matched ? getAgriPlots(matched) : 0} thửa`}
                                                 onChange={(val) => {
                                                   if (matched && val > maxAgriPlots) {
                                                     toast.warning(
@@ -535,15 +616,13 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
                                                 }}
                                                 readOnly={!canEdit}
                                               />
-                                              <span className="text-[10px] text-slate-400 whitespace-nowrap -ml-0.5">
-                                                / {matched ? getAgriPlots(matched) : 0} (thửa)
-                                              </span>
                                             </div>
                                             <div className="flex items-center gap-1.5 font-sans">
                                               <NumberInput
-                                                className="w-16 h-7 text-center bg-white border border-slate-200 rounded px-1.5 py-0.5 text-[10px] font-bold text-slate-800 outline-none focus:border-blue-500 font-mono"
+                                                className="w-16 h-8 text-center bg-white border border-slate-200 hover:border-slate-350 focus:border-emerald-500 transition-colors rounded-xl px-1.5 py-0.5 text-[11px] font-bold text-slate-800 outline-none font-mono shadow-3xs"
                                                 placeholder="Hộ"
                                                 value={getAgriHH(round)}
+                                                tooltipText={`Còn lại ${matched ? getAgriHH(matched) : 0} hộ`}
                                                 onChange={(val) => {
                                                   if (matched && val > maxAgriHH) {
                                                     toast.warning(
@@ -559,9 +638,6 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
                                                 }}
                                                 readOnly={!canEdit}
                                               />
-                                              <span className="text-[10px] text-slate-400 whitespace-nowrap -ml-0.5">
-                                                / {matched ? getAgriHH(matched) : 0} (hộ)
-                                              </span>
                                             </div>
                                           </div>
                                         )}
@@ -570,9 +646,10 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
                                           <div className="flex items-center gap-3">
                                             <div className="flex items-center gap-1.5 font-sans">
                                               <NumberInput
-                                                className="w-16 h-7 text-center bg-white border border-slate-200 rounded px-1.5 py-0.5 text-[10px] font-bold text-slate-800 outline-none focus:border-blue-500 font-mono"
+                                                className="w-16 h-8 text-center bg-white border border-slate-200 hover:border-slate-350 focus:border-emerald-500 transition-colors rounded-xl px-1.5 py-0.5 text-[11px] font-bold text-slate-800 outline-none font-mono shadow-3xs"
                                                 placeholder="Thửa"
                                                 value={getNonAgriPlots(round)}
+                                                tooltipText={`Còn lại ${matched ? getNonAgriPlots(matched) : 0} thửa`}
                                                 onChange={(val) => {
                                                   if (matched && val > maxNonAgriPlots) {
                                                     toast.warning(
@@ -588,15 +665,13 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
                                                 }}
                                                 readOnly={!canEdit}
                                               />
-                                              <span className="text-[10px] text-slate-400 whitespace-nowrap -ml-0.5">
-                                                / {matched ? getNonAgriPlots(matched) : 0} (thửa)
-                                              </span>
                                             </div>
                                             <div className="flex items-center gap-1.5 font-sans">
                                               <NumberInput
-                                                className="w-16 h-7 text-center bg-white border border-slate-200 rounded px-1.5 py-0.5 text-[10px] font-bold text-slate-800 outline-none focus:border-blue-500 font-mono"
+                                                className="w-16 h-8 text-center bg-white border border-slate-200 hover:border-slate-350 focus:border-emerald-505 transition-colors rounded-xl px-1.5 py-0.5 text-[11px] font-bold text-slate-800 outline-none font-mono shadow-3xs"
                                                 placeholder="Hộ"
                                                 value={getNonAgriHH(round)}
+                                                tooltipText={`Còn lại ${matched ? getNonAgriHH(matched) : 0} hộ`}
                                                 onChange={(val) => {
                                                   if (matched && val > maxNonAgriHH) {
                                                     toast.warning(
@@ -612,9 +687,6 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
                                                 }}
                                                 readOnly={!canEdit}
                                               />
-                                              <span className="text-[10px] text-slate-400 whitespace-nowrap -ml-0.5">
-                                                / {matched ? getNonAgriHH(matched) : 0} (hộ)
-                                              </span>
                                             </div>
                                           </div>
                                         )}
@@ -622,9 +694,10 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
                                         {typeVal === "org" && (
                                           <div className="flex items-center gap-1.5 font-sans">
                                             <NumberInput
-                                              className="w-16 h-7 text-center bg-white border border-slate-200 rounded px-1.5 py-0.5 text-[10px] font-bold text-slate-800 outline-none focus:border-blue-500 font-mono"
+                                              className="w-16 h-8 text-center bg-white border border-slate-200 hover:border-slate-350 focus:border-emerald-500 transition-colors rounded-xl px-1.5 py-0.5 text-[11px] font-bold text-slate-800 outline-none font-mono shadow-3xs"
                                               placeholder="Tổ chức"
                                               value={getOrgsVal(round)}
+                                              tooltipText={`Còn lại ${matched ? getOrgsVal(matched) : 0} tổ chức`}
                                               onChange={(val) => {
                                                 if (matched && val > maxOrgs) {
                                                   toast.warning(
@@ -640,9 +713,6 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
                                               }}
                                               readOnly={!canEdit}
                                             />
-                                            <span className="text-[10px] text-slate-400 whitespace-nowrap -ml-0.5">
-                                              / {matched ? getOrgsVal(matched) : 0} (tổ chức)
-                                            </span>
                                           </div>
                                         )}
 
@@ -651,9 +721,10 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
                                             <div className="flex items-center gap-3">
                                               <div className="flex items-center gap-1.5">
                                                 <NumberInput
-                                                  className="w-16 h-7 text-center bg-white border border-slate-200 rounded px-1.5 py-0.5 text-[10px] font-bold text-slate-800 outline-none focus:border-blue-500 font-mono"
+                                                  className="w-16 h-8 text-center bg-white border border-slate-200 hover:border-slate-350 focus:border-emerald-500 transition-colors rounded-xl px-1.5 py-0.5 text-[11px] font-bold text-slate-800 outline-none font-mono shadow-3xs"
                                                   placeholder="Hộ"
                                                   value={getAssetHH(round)}
+                                                  tooltipText={`Còn lại ${matched ? getAssetHH(matched) : 0} hộ có tài sản`}
                                                   onChange={(val) => {
                                                     if (matched && val > maxAssetHH) {
                                                       toast.warning(
@@ -669,13 +740,10 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
                                                   }}
                                                   readOnly={!canEdit}
                                                 />
-                                                <span className="text-[10px] text-slate-400 whitespace-nowrap -ml-0.5">
-                                                  / {matched ? getAssetHH(matched) : 0} (hộ có tài sản)
-                                                </span>
                                               </div>
                                             </div>
 
-                                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 bg-slate-100/50 p-2 rounded-lg border border-slate-200/40">
+                                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 bg-slate-100/50 p-2 rounded-xl border border-slate-200/40">
                                               {assetItems.map((item: any) => {
                                                 const valInRound = getAssetItemVal(round, item.id);
                                                 const maxValInMatched = matched ? getAssetItemVal(matched, item.id) : 0;
@@ -688,15 +756,16 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
                                                 return (
                                                   <div
                                                     key={item.id}
-                                                    className="flex items-center justify-between gap-1 bg-white p-1.5 rounded border border-slate-200/50"
+                                                    className="flex items-center justify-between gap-1 bg-white p-1.5 rounded-xl border border-slate-200/50"
                                                   >
-                                                    <span className="text-[9.5px] font-bold text-slate-500 truncate">
+                                                    <span className="text-[9.5px] font-bold text-slate-500 truncate select-none">
                                                       {item.label}
                                                     </span>
                                                     <div className="flex items-center gap-1">
                                                       <NumberInput
-                                                        className="w-12 h-6 text-center bg-slate-50 border border-slate-200 rounded text-[9.5px] font-bold text-slate-800 outline-none"
+                                                        className="w-12 h-6 text-center bg-slate-50 border border-slate-200 rounded text-[9.5px] font-bold text-slate-800 outline-none font-mono"
                                                         value={valInRound}
+                                                        tooltipText={`Còn lại ${maxValInMatched}`}
                                                         onChange={(val) => {
                                                           if (matched && val > maxItemSum) {
                                                             toast.warning(
@@ -719,9 +788,6 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
                                                         }}
                                                         readOnly={!canEdit}
                                                       />
-                                                      <span className="text-[9px] text-slate-400">
-                                                        / {maxValInMatched}
-                                                      </span>
                                                     </div>
                                                   </div>
                                                 );
@@ -757,7 +823,7 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
                                               roundCopy = syncRoundTotals(roundCopy);
                                               updateRound(project.id, stepKey, round.id, paymentData, roundCopy);
                                             }}
-                                            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-red-50 text-slate-300 hover:text-red-500 rounded sm:opacity-0 group-hover:opacity-100 transition-all border border-transparent hover:border-red-100"
+                                            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-red-50 text-slate-350 hover:text-red-500 rounded-xl sm:opacity-0 group-hover:opacity-100 transition-all border border-transparent hover:border-red-100"
                                             title="Gỡ nhóm đối tượng này"
                                           >
                                             <X className="w-3.5 h-3.5" />
@@ -781,7 +847,7 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
                                             updateRound(project.id, stepKey, round.id, paymentData, roundCopy);
                                           }
                                         }}
-                                        className="text-[10px] font-bold text-indigo-600 bg-indigo-50/75 hover:bg-indigo-100 px-2 py-1.5 rounded border border-indigo-100/30 transition-all h-[28px] mt-1 outline-none cursor-pointer"
+                                        className="text-[10.5px] font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-xl border border-indigo-200/50 transition-all h-8.5 mt-1 outline-none cursor-pointer shadow-3xs"
                                       >
                                         <option value="" disabled>
                                           + Thêm nhóm đối tượng
@@ -801,9 +867,9 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
                             </div>
 
                             {/* Ngày chi trả & Số tiền chi trả */}
-                            <div className="grid grid-cols-2 gap-4 mb-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3">
                               <div className="space-y-1.5">
-                                <label className="text-[9px] font-bold text-slate-400 uppercase font-sans">
+                                <label className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider block font-sans select-none">
                                   Ngày chi trả tiền
                                 </label>
                                 <CustomDatePicker
@@ -818,12 +884,12 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
                                 />
                               </div>
                               <div className="space-y-1.5">
-                                <label className="text-[9px] font-bold text-slate-400 uppercase font-sans">
+                                <label className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider block font-sans select-none">
                                   Số tiền chi trả BT, HT
                                 </label>
                                 <CurrencyInput
                                   readOnly={!canEdit}
-                                  className="w-full bg-white border border-slate-200 rounded-md px-2 py-1 text-[11px] font-bold text-emerald-700 text-right font-sans hover:border-slate-300 focus:border-blue-500 transition-colors"
+                                  className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-emerald-700 text-right font-sans hover:border-slate-350 focus:border-emerald-500 transition-all shadow-3xs h-9"
                                   value={round.amount || 0}
                                   onChange={(val) => {
                                     if (matched && val > maxAmountAllowed) {
@@ -839,7 +905,7 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
                             </div>
 
                             {/* Links/Attachments Management */}
-                            <div className="w-full border-t border-slate-100 pt-3">
+                            <div className="w-full border-t border-slate-200/60 pt-4">
                               <DocumentLinkList
                                 links={round.links || []}
                                 onChange={(newLinks) =>
@@ -852,10 +918,10 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
 
                             {/* Delete Round Options */}
                             {canEdit && (
-                              <div className="flex items-center justify-end pt-2 border-t border-slate-100 mt-2">
+                              <div className="flex items-center justify-end pt-3 border-t border-slate-200/60 mt-4 select-none">
                                 {roundDeletingId === round.id ? (
-                                  <div className="flex items-center gap-2 bg-red-50 p-1.5 rounded-lg border border-red-100">
-                                    <span className="text-[9px] font-bold text-red-700 uppercase px-1">
+                                  <div className="flex items-center gap-2 bg-rose-50 p-2 rounded-xl border border-rose-100 animate-in fade-in zoom-in-95">
+                                    <span className="text-[10px] font-bold text-rose-750 uppercase px-1">
                                       Xác nhận xoá đợt này?
                                     </span>
                                     <button
@@ -864,13 +930,13 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
                                         toast.success("Đã xoá đợt thành công");
                                         setRoundDeletingId(null);
                                       }}
-                                      className="bg-red-600 hover:bg-red-750 text-white rounded font-sans font-extrabold text-[9px] px-2.5 py-1 text-center"
+                                      className="bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-[10.5px] px-3.5 py-1.5 text-center cursor-pointer shadow-3xs transition-all"
                                     >
                                       XOÁ
                                     </button>
                                     <button
                                       onClick={() => setRoundDeletingId(null)}
-                                      className="bg-slate-200 hover:bg-slate-300 text-slate-700 rounded font-sans font-bold text-[9px] px-2 py-1 text-center"
+                                      className="bg-slate-200 hover:bg-slate-300 text-slate-705 rounded-xl font-bold text-[10.5px] px-3 py-1.5 text-center cursor-pointer shadow-3xs transition-all"
                                     >
                                       HỦY
                                     </button>
@@ -878,9 +944,9 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
                                 ) : (
                                   <button
                                     onClick={() => setRoundDeletingId(round.id)}
-                                    className="text-[10px] font-bold text-slate-400 hover:text-red-500 flex items-center gap-1 hover:bg-red-50/50 px-2 py-1 rounded transition-colors"
+                                    className="text-xs font-bold text-slate-400 hover:text-red-500 flex items-center gap-1.5 hover:bg-red-50/50 px-3 py-1.5 rounded-xl transition-all cursor-pointer"
                                   >
-                                    <Trash2 className="w-3.5 h-3.5" />
+                                    <Trash2 className="w-4 h-4" />
                                     Xoá đợt chi trả này
                                   </button>
                                 )}

@@ -347,8 +347,10 @@ export const checkInventoryCompleted = (inv: any) => {
   return true;
 };
 
-export const formatCount = (num: number) => {
-  return num === undefined || num === null || isNaN(num) ? 0 : num;
+export const formatCount = (num: any) => {
+  if (num === undefined || num === null) return 0;
+  const parsed = Number(num);
+  return isNaN(parsed) ? 0 : parsed;
 };
 
 export const getOverdueText = (deadlineStr?: string) => {
